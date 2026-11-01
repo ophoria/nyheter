@@ -29,6 +29,9 @@ struct FetchedTab: View {
     private struct Group: Identifiable {
         let id: String
         let stories: [Story]
+        /// Row ids must be unique across sections: ids that repeat per section (like offsets)
+        /// make the list draw one feed's rows under another feed's header.
+        var rows: [(id: String, story: Story)] { stories.enumerated().map { ("\(id)#\($0.offset)", $0.element) } }
     }
 
     /// One group per feed, in the order feeds are requested, each newest first.
@@ -63,9 +66,7 @@ struct FetchedTab: View {
                 List {
                     ForEach(groups) { group in
                         Section {
-                            ForEach(Array(group.stories.enumerated()), id: \.offset) { _, story in
-                                row(story)
-                            }
+                            ForEach(group.rows, id: \.id) { row($0.story) }
                         } header: {
                             HStack {
                                 Text(Sources.feedName(group.id))
