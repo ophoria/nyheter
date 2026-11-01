@@ -105,7 +105,7 @@ struct Theme {
               lede: FontSpec(family: .serif, weight: .regular), ledeScale: 1,
               ui: FontSpec(family: .sans, weight: .bold), number: FontSpec(family: .serif, weight: .light)),
 
-        Theme(id: "morgonbild", name: "Morning Paper Photo", blurb: "Morning Paper with the story’s photo as a faint wash behind the whole page.",
+        Theme(id: "morgonbild", name: "Morning Paper Photo", blurb: "Photos only with SR Ekot, DN, NYT, BBC and MS NOW. SVT and SCB have no photos.",
               background: hex(0xf2ece0), text: hex(0x16140f), mutedAlpha: 0.6, ruleAlpha: 0.3, ledeAlpha: 0.85,
               accents: ["svt": hex(0xb3261e), "sr": hex(0x1f4e8c), "dn": hex(0x8a5d00), "scb": hex(0x1d6b4f), "world": hex(0x5b3c8c),
                        "nyt": hex(0x1a1a1a), "bbc": hex(0xb80000), "msnow": hex(0x2b3a8f)],

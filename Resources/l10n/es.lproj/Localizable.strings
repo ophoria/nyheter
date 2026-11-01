@@ -143,7 +143,7 @@
 "Morning Paper" = "Diario matinal";
 "Light newsprint, black ink, rules and heavy serifs." = "Papel prensa claro, tinta negra, filetes y serifas gruesas.";
 "Morning Paper Photo" = "Diario matinal con foto";
-"Morning Paper with the story’s photo as a faint wash behind the whole page." = "Diario matinal con la foto de la noticia como un fondo tenue detrás de toda la página.";
+"Photos only with SR Ekot, DN, NYT, BBC and MS NOW. SVT and SCB have no photos." = "Fotos solo con SR Ekot, DN, NYT, BBC y MS NOW. SVT y SCB no tienen fotos.";
 "Night Desk" = "Redacción nocturna";
 "Dark and cinematic. Serif headlines, soft colour fields and toned press photos." = "Oscuro y cinematográfico. Titulares con serifa, campos de color suaves y fotos de prensa viradas.";
 "Svea" = "Svea";

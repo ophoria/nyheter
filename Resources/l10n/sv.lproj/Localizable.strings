@@ -143,7 +143,7 @@
 "Morning Paper" = "Morgontidning";
 "Light newsprint, black ink, rules and heavy serifs." = "Ljust tidningspapper, svart tryckfärg, linjer och tunga serifer.";
 "Morning Paper Photo" = "Morgontidning med bild";
-"Morning Paper with the story’s photo as a faint wash behind the whole page." = "Morgontidning med nyhetens bild som en svag tonad bakgrund bakom hela sidan.";
+"Photos only with SR Ekot, DN, NYT, BBC and MS NOW. SVT and SCB have no photos." = "Bilder bara med SR Ekot, DN, NYT, BBC och MS NOW. SVT och SCB har inga bilder.";
 "Night Desk" = "Nattredaktion";
 "Dark and cinematic. Serif headlines, soft colour fields and toned press photos." = "Mörk, filmisk. Serif-rubriker, mjuka färgfält och tonade pressbilder.";
 "Svea" = "Svea";
