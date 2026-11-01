@@ -15,7 +15,10 @@ struct FilterTab: View {
     var body: some View {
         Form {
             Section {
-                TextField(L("Word or expression"), text: $draft.pattern)
+                // A titled field in a grouped Form becomes a label beside a borderless field, so use a prompt.
+                TextField("", text: $draft.pattern, prompt: Text(L("Word or expression")))
+                    .labelsHidden()
+                    .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
                     .onSubmit(add)
                 Picker(L("Type"), selection: $draft.regex) {
