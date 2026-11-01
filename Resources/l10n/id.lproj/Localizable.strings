@@ -9,7 +9,7 @@
 "Filtered by “%@”" = "Difilter dengan “%@”";
 "Not shown: over the maximum, deselected region or duplicate" = "Tidak ditampilkan: melebihi maksimum, wilayah tidak dipilih, atau duplikat";
 "Place %d in the rotation" = "Urutan %d dalam rotasi";
-"Word or expression" = "Kata atau ungkapan";
+"Type word/(regex) here" = "Ketik kata/(regex) di sini";
 "Type" = "Jenis";
 "Text" = "Teks";
 "Regular expression" = "Ekspresi reguler";

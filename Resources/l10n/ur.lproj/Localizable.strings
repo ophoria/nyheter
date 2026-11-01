@@ -9,7 +9,7 @@
 "Filtered by “%@”" = "“%@” سے فلٹر شدہ";
 "Not shown: over the maximum, deselected region or duplicate" = "نہیں دکھائی گئی: زیادہ سے زیادہ حد سے اوپر، غیر منتخب علاقہ یا دہری";
 "Place %d in the rotation" = "گردش میں مقام %d";
-"Word or expression" = "لفظ یا عبارت";
+"Type word/(regex) here" = "یہاں لفظ/(regex) لکھیں";
 "Type" = "قسم";
 "Text" = "متن";
 "Regular expression" = "ریگولر ایکسپریشن";

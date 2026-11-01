@@ -9,7 +9,7 @@
 "Filtered by “%@”" = "Filtrata da «%@»";
 "Not shown: over the maximum, deselected region or duplicate" = "Non mostrata: oltre il massimo, regione deselezionata o duplicato";
 "Place %d in the rotation" = "Posizione %d nella rotazione";
-"Word or expression" = "Parola o espressione";
+"Type word/(regex) here" = "Scrivi parola/(regex) qui";
 "Type" = "Tipo";
 "Text" = "Testo";
 "Regular expression" = "Espressione regolare";

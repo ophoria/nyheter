@@ -9,7 +9,7 @@
 "Filtered by “%@”" = "被“%@”过滤";
 "Not shown: over the maximum, deselected region or duplicate" = "未显示：超出上限、地区未选或重复";
 "Place %d in the rotation" = "轮播第 %d 位";
-"Word or expression" = "词语或表达式";
+"Type word/(regex) here" = "在此输入词语/(正则表达式)";
 "Type" = "类型";
 "Text" = "文本";
 "Regular expression" = "正则表达式";

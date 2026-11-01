@@ -9,7 +9,7 @@
 "Filtered by “%@”" = "Gefilterd op “%@”";
 "Not shown: over the maximum, deselected region or duplicate" = "Niet getoond: boven het maximum, uitgeschakelde regio of duplicaat";
 "Place %d in the rotation" = "Plaats %d in de rotatie";
-"Word or expression" = "Woord of uitdrukking";
+"Type word/(regex) here" = "Typ woord/(regex) hier";
 "Type" = "Soort";
 "Text" = "Tekst";
 "Regular expression" = "Reguliere expressie";

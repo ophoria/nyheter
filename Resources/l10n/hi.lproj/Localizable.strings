@@ -9,7 +9,7 @@
 "Filtered by “%@”" = "“%@” द्वारा फ़िल्टर की गई";
 "Not shown: over the maximum, deselected region or duplicate" = "नहीं दिखाई गई: अधिकतम से ज़्यादा, अचयनित क्षेत्र या डुप्लिकेट";
 "Place %d in the rotation" = "रोटेशन में स्थान %d";
-"Word or expression" = "शब्द या एक्सप्रेशन";
+"Type word/(regex) here" = "यहाँ शब्द/(regex) लिखो";
 "Type" = "प्रकार";
 "Text" = "टेक्स्ट";
 "Regular expression" = "रेगुलर एक्सप्रेशन";

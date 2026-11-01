@@ -9,7 +9,7 @@
 "Filtered by “%@”" = "Відфільтровано за «%@»";
 "Not shown: over the maximum, deselected region or duplicate" = "Не показано: понад максимум, знятий регіон або дублікат";
 "Place %d in the rotation" = "Місце %d у ротації";
-"Word or expression" = "Слово або вираз";
+"Type word/(regex) here" = "Введіть слово/(regex) тут";
 "Type" = "Тип";
 "Text" = "Текст";
 "Regular expression" = "Регулярний вираз";

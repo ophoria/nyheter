@@ -16,7 +16,7 @@ struct FilterTab: View {
         Form {
             Section {
                 // A titled field in a grouped Form becomes a label beside a borderless field, so use a prompt.
-                TextField("", text: $draft.pattern, prompt: Text(L("Word or expression")))
+                TextField("", text: $draft.pattern, prompt: Text(L("Type word/(regex) here")))
                     .labelsHidden()
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))

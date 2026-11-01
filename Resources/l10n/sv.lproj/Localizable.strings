@@ -9,7 +9,7 @@
 "Filtered by “%@”" = "Filtrerad av ”%@”";
 "Not shown: over the maximum, deselected region or duplicate" = "Visas inte: över maxantalet, bortvald region eller dubblett";
 "Place %d in the rotation" = "Plats %d i rotationen";
-"Word or expression" = "Ord eller uttryck";
+"Type word/(regex) here" = "Skriv ord/(regex) här";
 "Type" = "Typ";
 "Text" = "Text";
 "Regular expression" = "Reguljärt uttryck";

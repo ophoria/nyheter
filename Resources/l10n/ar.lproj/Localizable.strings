@@ -9,7 +9,7 @@
 "Filtered by “%@”" = "مُرشّح بواسطة «%@»";
 "Not shown: over the maximum, deselected region or duplicate" = "غير معروض: تجاوز الحد الأقصى أو منطقة غير محددة أو مكرر";
 "Place %d in the rotation" = "المركز %d في التناوب";
-"Word or expression" = "كلمة أو تعبير";
+"Type word/(regex) here" = "اكتب كلمة/(regex) هنا";
 "Type" = "النوع";
 "Text" = "نص";
 "Regular expression" = "تعبير نمطي";
