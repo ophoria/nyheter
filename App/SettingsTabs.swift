@@ -104,15 +104,10 @@ private struct ThemeCard: View {
         HStack(spacing: 14) {
             ZStack(alignment: .bottomLeading) {
                 Color(nsColor: theme.flatBackground ? theme.accent(first) : theme.background)
-                if theme.photoCutouts {
-                    // Stand-ins for the photo windows: band at the top, side column, strip at the bottom.
-                    let photo = LinearGradient(colors: [Color(nsColor: hex(0x8fa6b8)), Color(nsColor: hex(0x6b7f5a))], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    VStack(spacing: 3) {
-                        Rectangle().fill(photo).frame(height: 12)
-                        HStack { Spacer(); Rectangle().fill(photo).frame(width: 30) }
-                        Rectangle().fill(photo).frame(height: 5)
-                    }
-                    .padding(5)
+                if theme.photoWash {
+                    // Stand-in for the faint photo behind the page.
+                    LinearGradient(colors: [Color(nsColor: hex(0x5f7a8f)), Color(nsColor: hex(0x6b7f5a))], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        .opacity(0.25)
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(Sources.label(first))
