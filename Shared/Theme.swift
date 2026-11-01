@@ -80,6 +80,10 @@ struct Theme {
     /// Occasional brightness flicker, like an old tube (Skyddsrum).
     var flicker = false
     var uppercaseHeadline = false
+    /// The story photo shows through cut-outs: above the rule, in the side column and under the progress line.
+    var photoCutouts = false
+    /// Choosing the theme turns off the upcoming-stories column (its space goes to the photo).
+    var hidesColumn = false
 
     var muted: NSColor { text.withAlphaComponent(mutedAlpha) }
     var rule: NSColor { text.withAlphaComponent(ruleAlpha) }
@@ -100,6 +104,16 @@ struct Theme {
               headline: FontSpec(family: .serif, weight: .black), headlineScale: 1, headlineLineHeight: 1.04, headlineKern: -0.015,
               lede: FontSpec(family: .serif, weight: .regular), ledeScale: 1,
               ui: FontSpec(family: .sans, weight: .bold), number: FontSpec(family: .serif, weight: .light)),
+
+        Theme(id: "morgonbild", name: "Morning Paper Photo", blurb: "Morning Paper with the story’s photo above the rule, in the side column and under the progress line.",
+              background: hex(0xf2ece0), text: hex(0x16140f), mutedAlpha: 0.6, ruleAlpha: 0.3, ledeAlpha: 0.85,
+              accents: ["svt": hex(0xb3261e), "sr": hex(0x1f4e8c), "dn": hex(0x8a5d00), "scb": hex(0x1d6b4f), "world": hex(0x5b3c8c),
+                       "nyt": hex(0x1a1a1a), "bbc": hex(0xb80000), "msnow": hex(0x2b3a8f)],
+              glows: nil, glowAlpha: 0, flatBackground: false, chip: .underline, photo: false, scanlines: false, kickerRule: true, cursor: false,
+              headline: FontSpec(family: .serif, weight: .black), headlineScale: 1, headlineLineHeight: 1.04, headlineKern: -0.015,
+              lede: FontSpec(family: .serif, weight: .regular), ledeScale: 1,
+              ui: FontSpec(family: .sans, weight: .bold), number: FontSpec(family: .serif, weight: .light),
+              photoCutouts: true, hidesColumn: true),
 
         Theme(id: "natt", name: "Night Desk", blurb: "Dark and cinematic. Serif headlines, soft colour fields and toned press photos.",
               background: hex(0x0d0e11), text: hex(0xf3eee6), mutedAlpha: 0.55, ruleAlpha: 0.14, ledeAlpha: 0.82,

@@ -48,7 +48,10 @@ struct ThemeTab: View {
                     } else {
                         ThemeCard(theme: theme, selected: store.settings.themeID == theme.id,
                                   marker: store.settings.themeID == theme.id ? "check" : nil, sources: sourceIDs)
-                            .onTapGesture { store.settings.themeID = theme.id }
+                            .onTapGesture {
+                                store.settings.themeID = theme.id
+                                if theme.hidesColumn { store.settings.showUpcoming = false }
+                            }
                     }
                 }
             }
@@ -101,6 +104,16 @@ private struct ThemeCard: View {
         HStack(spacing: 14) {
             ZStack(alignment: .bottomLeading) {
                 Color(nsColor: theme.flatBackground ? theme.accent(first) : theme.background)
+                if theme.photoCutouts {
+                    // Stand-ins for the photo windows: band at the top, side column, strip at the bottom.
+                    let photo = LinearGradient(colors: [Color(nsColor: hex(0x8fa6b8)), Color(nsColor: hex(0x6b7f5a))], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    VStack(spacing: 3) {
+                        Rectangle().fill(photo).frame(height: 12)
+                        HStack { Spacer(); Rectangle().fill(photo).frame(width: 30) }
+                        Rectangle().fill(photo).frame(height: 5)
+                    }
+                    .padding(5)
+                }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(Sources.label(first))
                         .font(Font(theme.ui.font(8) as CTFont))

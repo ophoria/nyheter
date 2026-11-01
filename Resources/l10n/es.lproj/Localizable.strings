@@ -142,6 +142,8 @@
 "Local: %@" = "Local: %@";
 "Morning Paper" = "Diario matinal";
 "Light newsprint, black ink, rules and heavy serifs." = "Papel prensa claro, tinta negra, filetes y serifas gruesas.";
+"Morning Paper Photo" = "Diario matinal con foto";
+"Morning Paper with the story’s photo above the rule, in the side column and under the progress line." = "Diario matinal con la foto de la noticia sobre la línea, en la columna lateral y bajo la barra de progreso.";
 "Night Desk" = "Redacción nocturna";
 "Dark and cinematic. Serif headlines, soft colour fields and toned press photos." = "Oscuro y cinematográfico. Titulares con serifa, campos de color suaves y fotos de prensa viradas.";
 "Svea" = "Svea";

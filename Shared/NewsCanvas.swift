@@ -22,6 +22,9 @@ final class NewsCanvas: NSView {
     private let bezel = CALayer()
     private let sourceTabs = CALayer()
     private let photo = CALayer()
+    /// Photo seen through cut-outs (photoCutouts themes); lives on the stage so it drifts with the text.
+    private let cutout = CALayer()
+    private let cutoutPhoto = CALayer()
     private let scrim = CAGradientLayer()
     private let stage = CALayer()
     private let scanlines = CAReplicatorLayer()
@@ -44,7 +47,7 @@ final class NewsCanvas: NSView {
     private var lastDrift = Date()
     private var laidOutSize = CGSize.zero
     private var laidOutScale: CGFloat = 0
-    private var imageCache: [URL: CGImage] = [:]
+    private var imageCache: [String: CGImage] = [:]
     private var currentImage: URL?
     private var photoChangedAt = Date.distantPast
 
@@ -75,6 +78,11 @@ final class NewsCanvas: NSView {
         photo.contentsGravity = .resizeAspectFill
         photo.masksToBounds = true
         photo.opacity = 0
+        cutoutPhoto.contentsGravity = .resizeAspectFill
+        cutoutPhoto.masksToBounds = true
+        cutout.addSublayer(cutoutPhoto)
+        cutout.mask = CAShapeLayer()
+        cutout.opacity = 0
         scrim.startPoint = CGPoint(x: 0, y: 0.5)
         scrim.endPoint = CGPoint(x: 1, y: 0.5)
         scrim.locations = [0, 0.45, 0.8]
@@ -84,6 +92,7 @@ final class NewsCanvas: NSView {
         rain.opacity = 0.32
         bezel.isGeometryFlipped = true
         [backdrop, glowA, glowB, rain, photo, scrim, stage, scanlines, bezel].forEach(root.addSublayer)
+        stage.addSublayer(cutout)
         stage.addSublayer(sourceTabs)
         [aside, footer].forEach(stage.addSublayer)
         stage.addSublayer(slideLayer)
@@ -251,7 +260,7 @@ final class NewsCanvas: NSView {
             let made = makeStory(story, animated: animated)
             content = made.layer
             slideDuration = settings.duration(words: made.visibleWords, headlineOnly: settings.headlineOnly)
-            updatePhoto(theme.photo ? story.imageURL : nil)
+            updatePhoto(theme.photo || theme.photoCutouts ? story.imageURL : nil)
         } else {
             return
         }
@@ -260,6 +269,7 @@ final class NewsCanvas: NSView {
         rebuildAside(animated: animated)
         rebuildFooter(source)
         rebuildSourceTabs(source)
+        layoutCutouts(top: content.frame.minY)
     }
 
     private func showPlaceholder(_ text: String, icon: String) {
@@ -306,7 +316,7 @@ final class NewsCanvas: NSView {
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        for l in [backdrop, stage, photo, scrim, scanlines, rain, bezel] { l.frame = bounds }
+        for l in [backdrop, stage, photo, scrim, scanlines, rain, bezel, cutout, cutoutPhoto] { l.frame = bounds }
         glowA.frame = CGRect(x: -0.3 * size, y: -0.4 * size, width: size, height: size)
         glowB.frame = CGRect(x: w - 0.6 * size, y: h - 0.55 * size, width: size, height: size)
         glowA.isHidden = theme.glows == nil
@@ -314,6 +324,11 @@ final class NewsCanvas: NSView {
         scrim.isHidden = !theme.photo
         scrim.colors = [theme.background.cgColor, theme.background.withAlphaComponent(0.6).cgColor, theme.background.withAlphaComponent(0).cgColor]
         photo.isHidden = !theme.photo
+        cutout.isHidden = !theme.photoCutouts
+        // Photo themes process images differently, so load the current one again.
+        currentImage = nil
+        photo.opacity = 0
+        cutout.opacity = 0
 
         // CRT scanlines for the terminal theme.
         scanlines.sublayers?.forEach { $0.removeFromSuperlayer() }
@@ -509,8 +524,10 @@ final class NewsCanvas: NSView {
     // MARK: - Story slide
 
     /// Width of the main column: narrower when the upcoming-stories column is shown.
-    private var mainWidth: CGFloat { (settings.showUpcoming ? 58 : 86) * vw }
-    private var ledeWidth: CGFloat { (settings.showUpcoming ? 48 : 64) * vw }
+    /// Cut-out themes keep the column's space for the photo even when the column is off.
+    private var narrow: Bool { settings.showUpcoming || theme.photoCutouts }
+    private var mainWidth: CGFloat { (narrow ? 58 : 86) * vw }
+    private var ledeWidth: CGFloat { (narrow ? 48 : 64) * vw }
 
     /// Builds a story slide and counts the words actually on screen (truncated text excluded).
     private func makeStory(_ story: Story, animated: Bool) -> (layer: CALayer, visibleWords: Int) {
@@ -615,7 +632,7 @@ final class NewsCanvas: NSView {
     private func makeCounters(animated: Bool) -> CALayer {
         let container = CALayer()
         let width = mainWidth
-        let columns = settings.showUpcoming ? 2 : 3
+        let columns = narrow ? 2 : 3
         var y: CGFloat = 0
         if theme.kickerRule {
             let rules = kickerRules(width: width)
@@ -851,7 +868,9 @@ final class NewsCanvas: NSView {
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        footer.frame = CGRect(x: 5 * vw, y: bounds.height - 4.5 * vh - height, width: width, height: height)
+        // Cut-out themes lift the progress line to leave a photo strip under it.
+        let footerY = theme.photoCutouts ? zone.upperBound + 2 * vh : bounds.height - 4.5 * vh - height
+        footer.frame = CGRect(x: 5 * vw, y: footerY, width: width, height: height)
         footer.isHidden = !settings.showProgress
         barFill.backgroundColor = theme.mark(source).cgColor
         barFill.frame = track.bounds
@@ -870,6 +889,27 @@ final class NewsCanvas: NSView {
 
     // MARK: - Background photo
 
+    /// Windows onto the photo: a band above the story's top rule, the side column (when the
+    /// upcoming list is off) and a strip under the progress line. `top` is the slide's top edge.
+    private func layoutCutouts(top: CGFloat) {
+        guard theme.photoCutouts, let mask = cutout.mask as? CAShapeLayer else { return }
+        let left = 5 * vw, right = bounds.width - 5 * vw, gap = 3 * vh
+        var rects = [CGRect(x: left, y: 5 * vh, width: right - left, height: max(0, top - gap - 5 * vh))]
+        let footerTop = footer.frame.minY, footerBottom = settings.showProgress ? footer.frame.maxY : footerTop
+        if !settings.showUpcoming {
+            let x = left + mainWidth + 5 * vw
+            rects.append(CGRect(x: x, y: top, width: right - x, height: max(0, footerTop - gap - top)))
+        }
+        rects.append(CGRect(x: left, y: footerBottom + 1.5 * vh, width: right - left, height: max(0, 95 * vh - footerBottom - 1.5 * vh)))
+        let path = CGMutablePath()
+        rects.filter { $0.height > 2 * vh }.forEach { path.addRect($0) }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        mask.frame = cutout.bounds
+        mask.path = path
+        CATransaction.commit()
+    }
+
     private func updatePhoto(_ url: URL?) {
         guard url != currentImage || url == nil else { return }
         currentImage = url
@@ -877,16 +917,18 @@ final class NewsCanvas: NSView {
         CATransaction.begin()
         CATransaction.setAnimationDuration(1)
         photo.opacity = 0
+        cutout.opacity = 0
         CATransaction.commit()
         guard let url else { return }
-        if let image = imageCache[url] { showPhoto(image, for: url); return }
+        let color = theme.photoCutouts, key = "\(color)\(url.absoluteString)"
+        if let image = imageCache[key] { showPhoto(image, for: url); return }
 
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
-            guard let data, let image = Self.process(data) else { return }
+            guard let data, let image = Self.process(data, color: color) else { return }
             DispatchQueue.main.async {
                 guard let self else { return }
                 if self.imageCache.count > 8 { self.imageCache.removeAll() }
-                self.imageCache[url] = image
+                self.imageCache[key] = image
                 self.showPhoto(image, for: url)
             }
         }.resume()
@@ -895,37 +937,40 @@ final class NewsCanvas: NSView {
     private func showPhoto(_ image: CGImage, for url: URL) {
         let wait = max(0, 1 - Date().timeIntervalSince(photoChangedAt))
         DispatchQueue.main.asyncAfter(deadline: .now() + wait) { [weak self] in
-            guard let self, self.currentImage == url, self.theme.photo else { return }
+            guard let self, self.currentImage == url, self.theme.photo || self.theme.photoCutouts else { return }
+            let cutouts = self.theme.photoCutouts
+            let target = cutouts ? self.cutoutPhoto : self.photo
             CATransaction.begin()
             CATransaction.setDisableActions(true)
-            self.photo.contents = image
+            target.contents = image
             CATransaction.commit()
 
             let zoom = CABasicAnimation(keyPath: "transform.scale")
-            zoom.fromValue = 1.04
-            zoom.toValue = 1.14
+            zoom.fromValue = cutouts ? 1 : 1.04
+            zoom.toValue = cutouts ? 1.06 : 1.14
             zoom.duration = 30
             zoom.fillMode = .forwards
             zoom.isRemovedOnCompletion = false
-            self.photo.add(zoom, forKey: "kenburns")
+            target.add(zoom, forKey: "kenburns")
 
             CATransaction.begin()
             CATransaction.setAnimationDuration(2.5)
-            self.photo.opacity = Self.photoOpacity
+            if cutouts { self.cutout.opacity = 1 } else { self.photo.opacity = Self.photoOpacity }
             CATransaction.commit()
         }
     }
 
-    /// Greyscale, darkened and downscaled so the photo sits behind the text.
-    private static func process(_ data: Data) -> CGImage? {
+    /// Downscaled; greyscale and darkened so the photo sits behind the text, or (cut-outs)
+    /// in slightly muted colour, like ink on newsprint.
+    private static func process(_ data: Data, color: Bool) -> CGImage? {
         guard var image = CIImage(data: data) else { return nil }
         let scale = min(1, 1920 / image.extent.width)
         image = image.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
         guard let filter = CIFilter(name: "CIColorControls") else { return nil }
         filter.setValue(image, forKey: kCIInputImageKey)
-        filter.setValue(0, forKey: kCIInputSaturationKey)
-        filter.setValue(-0.12, forKey: kCIInputBrightnessKey)
-        filter.setValue(1.1, forKey: kCIInputContrastKey)
+        filter.setValue(color ? 0.85 : 0, forKey: kCIInputSaturationKey)
+        filter.setValue(color ? 0 : -0.12, forKey: kCIInputBrightnessKey)
+        filter.setValue(color ? 1.04 : 1.1, forKey: kCIInputContrastKey)
         guard let output = filter.outputImage else { return nil }
         return CIContext().createCGImage(output, from: image.extent)
     }

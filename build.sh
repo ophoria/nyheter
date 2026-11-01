@@ -116,7 +116,7 @@ case "${1:-}" in
     mkdir -p $OUT/snapshots $OUT/tmp/harness
     cp tools/harness.swift $OUT/tmp/harness/main.swift
     swiftc -O -framework CoreImage Shared/*.swift $OUT/tmp/harness/main.swift -o $OUT/tmp/harness/harness
-    for theme in morgon natt svea schweiz pastel matrix skyddsrum terminal; do
+    for theme in morgon morgonbild natt svea schweiz pastel matrix skyddsrum terminal; do
       $OUT/tmp/harness/harness $OUT/snapshots/$theme $theme 1 4 11 &
     done
     wait
