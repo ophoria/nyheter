@@ -28,7 +28,7 @@ struct Provider: Identifiable {
     var flag: String { ["SE": "🇸🇪", "US": "🇺🇸", "GB": "🇬🇧"][country] ?? "🏳️" }
 }
 
-struct Story {
+struct Story: Codable {
     let source: String            // provider id, or "world" for the counter slide
     let feed: String
     let title: String

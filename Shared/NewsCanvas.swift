@@ -7,10 +7,16 @@ import CoreImage
 final class NewsCanvas: NSView {
     private static let photoOpacity: Float = 0.25
     private static let washOpacity: Float = 0.16
+    /// After a fetch where every feed failed (offline), try again this soon instead of waiting a full interval.
+    private static let offlineRetry: TimeInterval = 120
 
     private(set) var settings: NyheterSettings
     /// Called with everything fetched, the resulting rotation and the fetch time.
-    var onFetch: ((_ fetched: [Story], _ rotation: [Story], _ hits: [Filters.Hit], _ at: Date) -> Void)?
+    /// Set after init, so it is called straight away with saved news already shown.
+    var onFetch: ((_ fetched: [Story], _ rotation: [Story], _ hits: [Filters.Hit], _ at: Date) -> Void)? {
+        didSet { if let r = lastReport { onFetch?(r.fetched, r.rotation, r.hits, r.at) } }
+    }
+    private var lastReport: (fetched: [Story], rotation: [Story], hits: [Filters.Hit], at: Date)?
     /// Feeds that failed or returned nothing in the last fetch.
     private(set) var failedFeeds: Set<String> = []
     private var theme: Theme
@@ -42,7 +48,8 @@ final class NewsCanvas: NSView {
     private var counterLayers: [(WorldCounter, CATextLayer)] = []
     private var slideStart = Date.distantPast
     private(set) var slideDuration: TimeInterval = 15
-    private var lastFetch = Date.distantPast
+    private var lastFetch = Date.distantPast      // when the last fetch started; drives the refresh timer
+    private var newsDate = Date.distantPast       // when the news now in `fetched` was fetched
     private var fetchGeneration = 0
     private var lastDrift = Date()
     private var laidOutSize = CGSize.zero
@@ -94,6 +101,13 @@ final class NewsCanvas: NSView {
         stage.addSublayer(sourceTabs)
         [aside, footer].forEach(stage.addSublayer)
         stage.addSublayer(slideLayer)
+
+        // Saved news shows at once; it only counts as fresh if it was fetched for the same feeds.
+        if let cache = NewsCache.loadNewest() {
+            fetched = cache.stories
+            newsDate = cache.fetchedAt
+            if cache.signature == settings.sourceSignature { lastFetch = cache.fetchedAt }
+        }
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
@@ -128,8 +142,7 @@ final class NewsCanvas: NSView {
     func tick() {
         relayoutIfNeeded()
         let now = Date()
-        let refresh = TimeInterval(min(max(settings.refreshMinutes, NyheterSettings.refreshRange.lowerBound), NyheterSettings.refreshRange.upperBound) * 60)
-        if now.timeIntervalSince(lastFetch) > refresh { fetch() }
+        if now.timeIntervalSince(lastFetch) > refreshInterval { fetch() }
         if (!stories.isEmpty || countersEnabled), now.timeIntervalSince(slideStart) >= slideDuration { advance() }
         if showingCounters { updateCounters(now) }
         // Burn-in protection: nudge the whole layout a little every minute.
@@ -157,50 +170,68 @@ final class NewsCanvas: NSView {
     /// Fetches all feeds now instead of waiting for the next refresh.
     func refresh() { fetch() }
 
+    /// Fetches every feed. Stories show as each feed answers; until then a feed's stories from the
+    /// previous fetch stay, and a feed that fails keeps them (so offline shows the saved news).
     private func fetch() {
         lastFetch = Date()
         fetchGeneration += 1
         let generation = fetchGeneration
         let requests = Sources.requests(for: settings)
-        guard !requests.isEmpty else { failedFeeds = []; receive([], generation: generation, hadRequests: false); return }
+        guard !requests.isEmpty else { failedFeeds = []; fetched = []; reorder(); return }
 
-        let group = DispatchGroup()
-        let lock = NSLock()
-        var fetched: [Story] = []
+        let previous = fetched
+        let startedAt = lastFetch
+        let signature = settings.sourceSignature
+        var collected: [Story] = []
+        var answered: Set<String> = []
         var failed: Set<String> = []
+        var pending = requests.count
         for request in requests {
-            group.enter()
             var urlRequest = URLRequest(url: request.url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
             urlRequest.setValue("Nyheter/1.0 (macOS screen saver)", forHTTPHeaderField: "User-Agent")
             URLSession.shared.dataTask(with: urlRequest) { data, _, _ in
                 let parsed = data.map(request.parse) ?? []
-                lock.lock()
-                fetched += parsed
-                if parsed.isEmpty { failed.insert(request.feed) }
-                lock.unlock()
-                group.leave()
+                DispatchQueue.main.async { [weak self] in
+                    guard let self, generation == self.fetchGeneration else { return }
+                    pending -= 1
+                    if parsed.isEmpty { failed.insert(request.feed) } else { collected += parsed; answered.insert(request.feed); self.newsDate = startedAt }
+                    if pending > 0 {
+                        guard !parsed.isEmpty else { return }
+                        self.fetched = collected + previous.filter { !answered.contains($0.feed) }
+                        self.reorder()
+                        return
+                    }
+                    self.failedFeeds = failed
+                    guard !collected.isEmpty else {
+                        // Nothing came back: keep what is on screen and try again soon.
+                        self.lastFetch = Date().addingTimeInterval(self.offlineRetryOffset)
+                        self.reorder()
+                        return
+                    }
+                    // Feeds that failed keep their stories from before; feeds no longer asked for drop theirs.
+                    self.fetched = collected + previous.filter { failed.contains($0.feed) }
+                    NewsCache(fetchedAt: startedAt, signature: signature, stories: self.fetched).save()
+                    self.reorder()
+                }
             }.resume()
-        }
-        group.notify(queue: .main) { [weak self] in
-            self?.failedFeeds = failed
-            self?.receive(fetched, generation: generation, hadRequests: true)
         }
     }
 
-    private func receive(_ fetched: [Story], generation: Int, hadRequests: Bool) {
-        guard generation == fetchGeneration else { return }
-        // A failed refresh (offline) keeps the stories already on screen.
-        if hadRequests, fetched.isEmpty, !stories.isEmpty { return }
-        self.fetched = fetched
-        reorder()
+    /// The refresh setting: news older than this is fetched again.
+    private var refreshInterval: TimeInterval {
+        TimeInterval(min(max(settings.refreshMinutes, NyheterSettings.refreshRange.lowerBound), NyheterSettings.refreshRange.upperBound) * 60)
     }
+
+    /// Moves lastFetch back so the next try comes after offlineRetry rather than a full interval.
+    private var offlineRetryOffset: TimeInterval { Self.offlineRetry - refreshInterval }
 
     /// Rebuilds the rotation from the last fetch, keeping the story on screen.
     private func reorder() {
         let filtered = Filters.apply(fetched, settings.filters, sections: settings.blockedSections)
         if !filtered.hits.isEmpty { BlockLog.record(filtered.hits, clearedAt: settings.logClearedAt) }
         let fresh = Sources.assemble(filtered.kept, settings: settings)
-        onFetch?(fetched, fresh, filtered.hits, lastFetch)
+        lastReport = (fetched, fresh, filtered.hits, newsDate)
+        onFetch?(fetched, fresh, filtered.hits, newsDate)
         let currentTitle = current.flatMap { stories.indices.contains($0) ? stories[$0].title : nil }
         let wasEmpty = stories.isEmpty
         stories = fresh
@@ -304,7 +335,9 @@ final class NewsCanvas: NSView {
         laidOutSize = bounds.size
         laidOutScale = scale
         layoutThemeLayers()
-        if showingCounters || current != nil { showSlide(animated: false) } else { showPlaceholder(L("Fetching news…"), icon: "download") }
+        if stories.isEmpty, !fetched.isEmpty { reorder() }   // saved news from the last run
+        if showingCounters || current != nil { showSlide(animated: false) }
+        else if stories.isEmpty { showPlaceholder(L("Fetching news…"), icon: "download") }
     }
 
     /// Sizes and styles the background layers for the current theme.
