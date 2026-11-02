@@ -19,6 +19,9 @@ final class NewsCanvas: NSView {
     private var lastReport: (fetched: [Story], rotation: [Story], hits: [Filters.Hit], at: Date)?
     /// Feeds that failed or returned nothing in the last fetch.
     private(set) var failedFeeds: Set<String> = []
+    /// Remember shown stories so later runs show unseen ones first. Only the real screen saver does,
+    /// so the app's preview doesn't use them up.
+    var recordsSeen = false
     private var theme: Theme
 
     private let root = CALayer()
@@ -57,6 +60,8 @@ final class NewsCanvas: NSView {
     private var imageCache: [String: CGImage] = [:]
     private var currentImage: URL?
     private var photoChangedAt = Date.distantPast
+    /// Title keys of the stories shown since this canvas started.
+    private var shownThisRun: Set<String> = []
 
     private var vw: CGFloat { bounds.width / 100 }
     private var vh: CGFloat { bounds.height / 100 }
@@ -70,6 +75,7 @@ final class NewsCanvas: NSView {
 
     init(frame: NSRect, settings: NyheterSettings) {
         self.settings = settings
+        Sources.custom = settings.customFeeds
         L10n.override = settings.language
         self.theme = Theme.named(settings.randomTheme ? (settings.randomThemeIDs.randomElement() ?? settings.themeID) : settings.themeID)
         super.init(frame: frame)
@@ -116,6 +122,7 @@ final class NewsCanvas: NSView {
 
     func apply(_ new: NyheterSettings) {
         let old = settings
+        Sources.custom = new.customFeeds
         settings = new
         if new.language != old.language {
             L10n.override = new.language
@@ -133,7 +140,7 @@ final class NewsCanvas: NSView {
             theme = Theme.named(new.themeID)
             laidOutSize = .zero
             relayoutIfNeeded()
-        } else if new.showUpcoming != old.showUpcoming || new.headlineOnly != old.headlineOnly || new.showProgress != old.showProgress
+        } else if new.showQRCode != old.showQRCode || new.headlineOnly != old.headlineOnly || new.showProgress != old.showProgress
                     || (showingCounters && (new.counterIDs != old.counterIDs || new.counters != old.counters)) {
             if showingCounters || current != nil { showSlide(animated: false) }
         }
@@ -229,7 +236,7 @@ final class NewsCanvas: NSView {
     private func reorder() {
         let filtered = Filters.apply(fetched, settings.filters, sections: settings.blockedSections)
         if !filtered.hits.isEmpty { BlockLog.record(filtered.hits, clearedAt: settings.logClearedAt) }
-        let fresh = Sources.assemble(filtered.kept, settings: settings)
+        let fresh = Sources.assemble(filtered.kept, settings: settings, seen: settings.unseenFirst ? SeenStories.keys() : [])
         lastReport = (fetched, fresh, filtered.hits, newsDate)
         onFetch?(fetched, fresh, filtered.hits, newsDate)
         let currentTitle = current.flatMap { stories.indices.contains($0) ? stories[$0].title : nil }
@@ -237,6 +244,12 @@ final class NewsCanvas: NSView {
         stories = fresh
         current = fresh.firstIndex { $0.title == currentTitle }
         nextIndex = current.map { ($0 + 1) % max(1, fresh.count) } ?? 0
+        // The rotation puts breaking and unseen stories first; go on with the first of those not shown yet.
+        if settings.breakingFirst || settings.unseenFirst,
+           let first = fresh.indices.first(where: { $0 != current && !shownThisRun.contains(Sources.titleKey(fresh[$0].title)) }),
+           settings.breakingLabel(for: fresh[first]) != nil || settings.unseenFirst {
+            nextIndex = first
+        }
         if stories.isEmpty, !countersEnabled { showPlaceholder(L("No stories – choose sources in the Nyheter app."), icon: "newspaper") }
         else if wasEmpty, !showingCounters { advance() }
     }
@@ -286,6 +299,8 @@ final class NewsCanvas: NSView {
         } else if let i = current, stories.indices.contains(i) {
             let story = stories[i]
             source = story.source
+            shownThisRun.insert(Sources.titleKey(story.title))
+            if recordsSeen { SeenStories.record(story) }
             let made = makeStory(story, animated: animated)
             content = made.layer
             slideDuration = settings.duration(words: made.visibleWords, headlineOnly: settings.headlineOnly)
@@ -544,20 +559,20 @@ final class NewsCanvas: NSView {
         CATransaction.setDisableActions(!animated)
         backdrop.backgroundColor = theme.backdrop(source).cgColor
         if let glows = theme.glows, let second = theme.secondGlows {
-            glowA.colors = glowColors(glows[source] ?? theme.accent(source), theme.glowAlpha)
-            glowB.colors = glowColors(second[source] ?? theme.accent(source), theme.glowAlpha)
+            glowA.colors = glowColors(glows[Sources.paletteKey(source)] ?? theme.accent(source), theme.glowAlpha)
+            glowB.colors = glowColors(second[Sources.paletteKey(source)] ?? theme.accent(source), theme.glowAlpha)
         } else if let glows = theme.glows {
             glowA.colors = glowColors(theme.accent(source), theme.glowAlpha)
-            glowB.colors = glowColors(glows[source] ?? theme.accent(source), theme.glowAlpha * 0.6)
+            glowB.colors = glowColors(glows[Sources.paletteKey(source)] ?? theme.accent(source), theme.glowAlpha * 0.6)
         }
         CATransaction.commit()
     }
 
     // MARK: - Story slide
 
-    /// Width of the main column: narrower when the upcoming-stories column is shown.
+    /// Width of the main column: narrower when the QR code column is shown.
     /// Wash themes keep the column's space open so the photo shows there even when the column is off.
-    private var narrow: Bool { settings.showUpcoming || theme.photoWash }
+    private var narrow: Bool { settings.showQRCode || theme.photoWash }
     private var mainWidth: CGFloat { (narrow ? 58 : 86) * vw }
     private var ledeWidth: CGFloat { (narrow ? 48 : 64) * vw }
 
@@ -575,7 +590,8 @@ final class NewsCanvas: NSView {
             y += rules.bounds.height + 2.5 * vh
         }
 
-        let meta = metaRow(chip: Sources.label(story.source), mark: story.source, category: L(story.category), age: ago(story.date))
+        let meta = metaRow(chip: Sources.label(story.source), mark: story.source, category: L(story.category), age: ago(story.date),
+                           breaking: settings.breakingLabel(for: story))
         meta.frame.origin.y = y
         container.addSublayer(meta)
         parts.append(meta)
@@ -743,7 +759,7 @@ final class NewsCanvas: NSView {
 
     // MARK: - Shared slide parts
 
-    private func metaRow(chip label: String, mark source: String, category: String, age: String) -> CALayer {
+    private func metaRow(chip label: String, mark source: String, category: String, age: String, breaking: String? = nil) -> CALayer {
         let size = 1 * vw
         let chip = CALayer()
         let pad = CGSize(width: 0.7 * vw, height: 0.45 * vh)
@@ -776,13 +792,39 @@ final class NewsCanvas: NSView {
         let ageLayer = textLayer(upper(age, FontSpec(family: theme.ui.family, weight: .regular).font(size), theme.muted, kern: 0.16), width: 20 * vw)
         let meta = CALayer()
         var x: CGFloat = 0
-        for part in [chip, categoryLayer, ageLayer] {
+        let parts = [chip] + (breaking.map { [breakingTag($0, source: source, size: size)] } ?? []) + [categoryLayer, ageLayer]
+        for part in parts {
             part.frame.origin = CGPoint(x: x, y: (chip.bounds.height - part.bounds.height) / 2)
             meta.addSublayer(part)
             x += part.bounds.width + 1.2 * vw
         }
         meta.frame = CGRect(x: 0, y: 0, width: x, height: chip.bounds.height)
         return meta
+    }
+
+    /// A pulsing dot and the reason a story counts as breaking ("New" or the watchword it mentions).
+    private func breakingTag(_ text: String, source: String, size: CGFloat) -> CALayer {
+        let color = theme.mark(source)
+        let label = textLayer(upper(text, theme.ui.font(size), color, kern: 0.16), width: 20 * vw)
+        let d = 0.55 * size
+        let dot = CALayer()
+        dot.backgroundColor = color.cgColor
+        dot.cornerRadius = d / 2
+        dot.frame = CGRect(x: 0, y: (label.bounds.height - d) / 2, width: d, height: d)
+        let pulse = CABasicAnimation(keyPath: "opacity")
+        pulse.fromValue = 1
+        pulse.toValue = 0.25
+        pulse.duration = 0.9
+        pulse.autoreverses = true
+        pulse.repeatCount = .infinity
+        pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        dot.add(pulse, forKey: "pulse")
+        label.frame.origin = CGPoint(x: d + 0.5 * size, y: 0)
+        let tag = CALayer()
+        tag.addSublayer(dot)
+        tag.addSublayer(label)
+        tag.frame = CGRect(x: 0, y: 0, width: label.frame.maxX, height: label.bounds.height)
+        return tag
     }
 
     /// Newspaper-style thick-and-thin rule above the kicker, or a solid block in the highlight colour.
@@ -834,34 +876,46 @@ final class NewsCanvas: NSView {
         layer.add(group, forKey: "in")
     }
 
-    // MARK: - Side list and footer
+    // MARK: - QR code column and footer
 
+    /// The right-hand column: a QR code to the story on the source's own site, to read on a phone.
     private func rebuildAside(animated: Bool) {
         aside.sublayers?.forEach { $0.removeFromSuperlayer() }
-        let width = 26 * vw, pad = 2.2 * vw, inner = width - pad
+        let width = 26 * vw, pad = 2.2 * vw
+        let story = showingCounters ? nil : current.flatMap { stories.indices.contains($0) ? stories[$0] : nil }
+        let link = story?.link
         var y: CGFloat = 0
 
-        let upcoming = stories.isEmpty ? [] : (0..<min(5, stories.count - (current == nil ? 0 : 1))).map { stories[(nextIndex + $0) % stories.count] }
-        for (k, next) in upcoming.enumerated() {
-            if k > 0 {
-                let rule = CALayer()
-                rule.backgroundColor = theme.rule.cgColor
-                rule.frame = CGRect(x: pad, y: y, width: inner, height: 1)
-                aside.addSublayer(rule)
-            }
-            y += 1.5 * vh
-            let label = textLayer(upper(Sources.label(next.source), theme.ui.font(0.7 * vw), theme.mark(next.source), kern: 0.14), width: 5 * vw)
-            let time = textLayer(NSAttributedString(string: clock(next.date),
-                attributes: attrs(FontSpec(family: theme.ui.family, weight: .regular).font(0.9 * vw), theme.muted)), width: 5 * vw)
-            let titleSize = 1.05 * vw
-            let title = textLayer(NSAttributedString(string: next.title,
-                attributes: attrs(FontSpec(family: theme.ui.family, weight: .regular).font(titleSize), theme.muted, lineHeight: titleSize * 1.35)),
-                width: inner - 5 * vw, maxHeight: titleSize * 1.35 * 2)
-            label.frame.origin = CGPoint(x: pad, y: y)
-            time.frame.origin = CGPoint(x: pad, y: y + label.bounds.height)
-            title.frame.origin = CGPoint(x: pad + 5 * vw, y: y)
-            [label, time, title].forEach(aside.addSublayer)
-            y += max(label.bounds.height + time.bounds.height, title.bounds.height) + 1.5 * vh
+        let side = 13 * vw
+        if let link, let story, let code = qrImage(link, source: story.source, pixels: side * scale) {
+            let heading = textLayer(upper(L("Read the whole story"), theme.ui.font(0.8 * vw), theme.mark(story.source), kern: 0.14), width: width - pad)
+            heading.frame.origin = CGPoint(x: pad, y: y)
+            aside.addSublayer(heading)
+            y += heading.bounds.height + 1.6 * vh
+
+            // On a light page the quiet zone is the page itself (transparent), so the modules line up with
+            // the text; on a dark page the code sits on a light card.
+            let quiet = code.onPage ? side * 4 / CGFloat(code.width / code.modulePixels) : 0
+            let plate = CALayer()
+            plate.frame = CGRect(x: pad - quiet, y: y - quiet, width: side, height: side)
+            plate.contents = code.image
+            plate.magnificationFilter = .nearest
+            plate.cornerRadius = 0.6 * vw
+            plate.masksToBounds = true
+            aside.addSublayer(plate)
+            y += side - 2 * quiet + 1.6 * vh
+
+            let site = textLayer(NSAttributedString(string: Self.siteName(link),
+                attributes: attrs(FontSpec(family: theme.ui.family, weight: .semibold).font(1 * vw), theme.text)), width: width - pad)
+            site.frame.origin = CGPoint(x: pad, y: y)
+            aside.addSublayer(site)
+            y += site.bounds.height + 0.6 * vh
+            let hint = textLayer(NSAttributedString(string: L("Point your phone's camera at the code."),
+                attributes: attrs(FontSpec(family: theme.ui.family, weight: .regular).font(0.85 * vw), theme.muted, lineHeight: 1.2 * vw)),
+                width: side)
+            hint.frame.origin = CGPoint(x: pad, y: y)
+            aside.addSublayer(hint)
+            y += hint.bounds.height
         }
 
         let border = CALayer()
@@ -871,7 +925,7 @@ final class NewsCanvas: NSView {
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        aside.isHidden = upcoming.isEmpty || !settings.showUpcoming
+        aside.isHidden = y == 0 || !settings.showQRCode
         aside.frame = CGRect(x: bounds.width - 5 * vw - width, y: (zone.lowerBound + zone.upperBound - y) / 2, width: width, height: y)
         CATransaction.commit()
         if animated {
@@ -880,6 +934,47 @@ final class NewsCanvas: NSView {
             fade.duration = 0.8
             aside.add(fade, forKey: "fade")
         }
+    }
+
+    /// A QR code for the link, dark modules on a light ground (what phone cameras read best), in the
+    /// theme's own text and background colours, with the standard four-module quiet zone. When the page
+    /// itself is the light colour, the ground is left transparent (`onPage`).
+    private func qrImage(_ link: URL, source: String, pixels: CGFloat) -> (image: CGImage, width: Int, modulePixels: Int, onPage: Bool)? {
+        guard let generator = CIFilter(name: "CIQRCodeGenerator") else { return nil }
+        generator.setValue(Data(link.absoluteString.utf8), forKey: "inputMessage")
+        generator.setValue("M", forKey: "inputCorrectionLevel")
+        guard let code = generator.outputImage else { return nil }
+
+        let a = theme.text, b = theme.backdrop(source)
+        let (dark, light) = Self.luminance(a) < Self.luminance(b) ? (a, b) : (b, a)
+        let onPage = light == b && !theme.photo
+        guard let colored = CIFilter(name: "CIFalseColor") else { return nil }
+        colored.setValue(code, forKey: kCIInputImageKey)
+        colored.setValue(CIColor(color: dark) ?? CIColor.black, forKey: "inputColor0")
+        colored.setValue(onPage ? CIColor.clear : CIColor(color: light) ?? CIColor.white, forKey: "inputColor1")
+        guard let modules = colored.outputImage else { return nil }
+
+        let quiet: CGFloat = 4
+        let plate = CIImage(color: onPage ? CIColor.clear : CIColor(color: light) ?? CIColor.white)
+            .cropped(to: modules.extent.insetBy(dx: -quiet, dy: -quiet))
+        let composed = modules.composited(over: plate).transformed(by: CGAffineTransform(translationX: quiet, y: quiet))
+        // Whole pixels per module, scaled without smoothing, so the edges stay sharp for the camera.
+        let factor = max(1, (pixels / composed.extent.width).rounded(.up))
+        let sharp = composed.samplingNearest().transformed(by: CGAffineTransform(scaleX: factor, y: factor))
+        guard let image = CIContext().createCGImage(sharp, from: CGRect(origin: .zero, size: sharp.extent.size)) else { return nil }
+        return (image, image.width, Int(factor), onPage)
+    }
+
+    private static func luminance(_ color: NSColor) -> CGFloat {
+        guard let c = color.usingColorSpace(.sRGB) else { return 0 }
+        return 0.2126 * c.redComponent + 0.7152 * c.greenComponent + 0.0722 * c.blueComponent
+    }
+
+    /// "reuters.com", or the aggregator's name for links that go through one.
+    private static func siteName(_ link: URL) -> String {
+        let host = link.host ?? link.absoluteString
+        if host == "news.google.com" { return "Google News" }
+        return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
     }
 
     /// Just the progress line and a position counter.

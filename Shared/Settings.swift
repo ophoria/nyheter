@@ -19,6 +19,14 @@ struct NyheterSettings: Codable, Equatable {
     // Sources, per provider id (see Sources.providers). A provider that is switched off keeps
     // its settings here, so they come back when it is switched on again.
     var sources: [String: SourceSettings] = [:]
+    var customFeeds: [CustomFeed] = []                 // the user's own feeds; each is a provider of its own
+
+    // Freshness
+    var maxAgeHours = 24                               // stories older than this are skipped; 0 = no limit
+    var breakingFirst = true                           // new stories and watchword matches go first, marked
+    var breakingMinutes = 60                           // "new" means published within this many minutes
+    var watchwords: [String] = []                      // a story mentioning one of these counts as breaking
+    var unseenFirst = true                             // stories not shown in earlier runs come before seen ones
 
     // World counters
     var counters = true
@@ -39,7 +47,7 @@ struct NyheterSettings: Codable, Equatable {
     var randomThemeIDs: [String] = Theme.all.map(\.id)  // …from these
 
     // Layout
-    var showUpcoming = true        // right-hand column with the next stories
+    var showQRCode = true          // right-hand column with a QR code to the story on the source's site
     var headlineOnly = false       // hide the intro text / bullet points
     var showProgress = true        // progress line and position counter at the bottom
 
@@ -53,6 +61,8 @@ struct NyheterSettings: Codable, Equatable {
     }
 
     static let maxStories = 100
+    static let maxAgeChoices = [0, 3, 6, 12, 24, 48, 72]
+    static let breakingChoices = [15, 30, 60, 120, 180]
     static let refreshChoices = [30, 60, 120, 180, 360, 720, 1440]
     static let refreshRange = 30...1440
 
@@ -101,12 +111,45 @@ struct NyheterSettings: Codable, Equatable {
 
     /// Signature of everything that affects which feeds are fetched.
     var sourceSignature: String {
-        Sources.requests(for: self).map(\.url.absoluteString).joined(separator: " ")
+        // The user's feeds are named too: the request list itself reads the feeds in use from Sources.custom.
+        Sources.requests(for: self).map(\.url.absoluteString).joined(separator: " ") + customFeeds.map(\.url).joined(separator: " ")
     }
 
     /// Signature of everything that only changes how fetched stories are picked and ordered.
     var orderSignature: String {
         "\(sources)\(orderMode)\(turnPattern)\(blockOrder)\(maxPerSource)\(filters)\(blockedSections)"
+            + "\(maxAgeHours)\(breakingFirst)\(breakingMinutes)\(watchwords)\(unseenFirst)"
+    }
+
+    /// Older than the age limit. Undated stories are kept, and so are sources with few, slow-moving
+    /// items (SCB), which have their own cap.
+    func isTooOld(_ story: Story, now: Date = Date()) -> Bool {
+        guard maxAgeHours > 0, story.date != .distantPast, Sources.provider(story.source)?.itemLimit != true else { return false }
+        return now.timeIntervalSince(story.date) > Double(maxAgeHours) * 3600
+    }
+
+    /// Why a story counts as breaking: the watchword it mentions, or "New"; nil if it doesn't.
+    func breakingLabel(for story: Story, now: Date = Date()) -> String? {
+        guard breakingFirst else { return nil }
+        let text = ([story.title] + story.body).joined(separator: " ")
+        // From the start of a word, so "election" also finds "elections" but "the" doesn’t find "other".
+        if let word = watchwords.first(where: { word in
+            !word.isEmpty && text.range(of: "\\b" + NSRegularExpression.escapedPattern(for: word),
+                                        options: [.regularExpression, .caseInsensitive, .diacriticInsensitive]) != nil
+        }) {
+            return word
+        }
+        let age = now.timeIntervalSince(story.date)
+        return story.date != .distantPast && age >= -300 && age <= Double(breakingMinutes) * 60 ? L("New") : nil
+    }
+
+    /// Takes a user feed out entirely, with its place in the order lists.
+    mutating func removeCustomFeed(_ id: String) {
+        customFeeds.removeAll { $0.id == id }
+        sources[id] = nil
+        turnPattern.removeAll { $0 == id }
+        blockOrder.removeAll { $0 == id }
+        Sources.custom = customFeeds
     }
 
     // MARK: - Persistence
@@ -133,6 +176,9 @@ struct NyheterSettings: Codable, Equatable {
         guard let merged = try? JSONSerialization.data(withJSONObject: defaults.merging(saved) { _, new in new }),
               var settings = try? JSONDecoder().decode(NyheterSettings.self, from: merged)
         else { return NyheterSettings() }
+        Sources.custom = settings.customFeeds
+        // The upcoming-stories column became the QR code column; keep the user's choice to hide it.
+        if let upcoming = saved["showUpcoming"] as? Bool, saved["showQRCode"] == nil { settings.showQRCode = upcoming }
         // Older versions offered updates every 10 or 15 minutes.
         settings.refreshMinutes = refreshChoices.first { $0 >= settings.refreshMinutes } ?? refreshRange.upperBound
         // The built-in filters target Swedish words; older files didn't say so.

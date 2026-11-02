@@ -7,7 +7,6 @@
 "Fetching…" = "A obter…";
 "%d fetched, %d in the rotation" = "%d obtidas, %d na rotação";
 "Filtered by “%@”" = "Filtrada por «%@»";
-"Not shown: over the maximum, deselected region or duplicate" = "Não apresentada: acima do máximo, região desmarcada ou duplicada";
 "Place %d in the rotation" = "Posição %d na rotação";
 "Type word/(regex) here" = "Escreve palavra/(regex) aqui";
 "Type" = "Tipo";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "Nenhuma fonte está ativada.";
 "all from %@" = "todas de %@";
 "For example:" = "Por exemplo:";
-"Show upcoming stories in the right column" = "Mostrar as próximas notícias na coluna da direita";
 "Show headlines only" = "Mostrar apenas títulos";
 "Show the progress line at the bottom" = "Mostrar a linha de progresso em baixo";
 "Layout" = "Disposição";
@@ -236,3 +234,28 @@
 "Filter" = "Filtro";
 "Source" = "Fonte";
 "Double-click a row to open the story." = "Faça duplo clique numa linha para abrir a notícia.";
+
+"All stories" = "Todas as notícias";
+"New" = "Novo";
+"Read the whole story" = "Ler a notícia completa";
+"Point your phone's camera at the code." = "Aponte a câmara do telemóvel para o código.";
+"Show a QR code to the story in the right column" = "Mostrar um código QR da notícia na coluna da direita";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Não mostrada: antiga demais, acima do máximo, região desmarcada ou duplicada";
+"Skip stories older than" = "Ignorar notícias com mais de";
+"No limit" = "Sem limite";
+"%d h" = "%d h";
+"%d min" = "%d min";
+"Undated stories and SCB's statistics are always kept." = "Notícias sem data e as estatísticas do SCB são sempre mantidas.";
+"Feed or website address" = "Endereço de um feed ou site";
+"Your own feeds" = "Os seus feeds";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Cole o endereço de qualquer feed RSS, Atom ou JSON, ou de um site que tenha um. Cada feed torna-se uma fonte própria.";
+"Delete" = "Eliminar";
+"Couldn't reach that address." = "Não foi possível aceder a esse endereço.";
+"No news feed found at that address." = "Nenhum feed de notícias encontrado nesse endereço.";
+"Show new stories first, marked “New”" = "Mostrar primeiro as notícias novas, marcadas «Novo»";
+"Counts as new for" = "Conta como nova durante";
+"Watchwords" = "Palavras de alerta";
+"Words, separated by commas" = "Palavras separadas por vírgulas";
+"Show stories not seen before first" = "Mostrar primeiro as notícias ainda não vistas";
+"Priority" = "Prioridade";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "As notícias que mencionam uma palavra de alerta também aparecem primeiro, marcadas com a palavra. A proteção de ecrã lembra-se do que mostrou durante uma semana.";

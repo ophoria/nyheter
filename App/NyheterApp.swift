@@ -43,6 +43,7 @@ final class SettingsStore: ObservableObject {
             var normalized = settings
             normalized.includeActiveSources()
             if normalized != settings { settings = normalized; return }
+            Sources.custom = settings.customFeeds
             L10n.override = Self.debugLanguage ?? settings.language
             if settings != oldValue { settings.save() }
         }

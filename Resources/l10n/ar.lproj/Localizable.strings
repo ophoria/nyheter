@@ -7,7 +7,6 @@
 "Fetching…" = "جارٍ الجلب…";
 "%d fetched, %d in the rotation" = "تم جلب %d، و%d في التناوب";
 "Filtered by “%@”" = "مُرشّح بواسطة «%@»";
-"Not shown: over the maximum, deselected region or duplicate" = "غير معروض: تجاوز الحد الأقصى أو منطقة غير محددة أو مكرر";
 "Place %d in the rotation" = "المركز %d في التناوب";
 "Type word/(regex) here" = "اكتب كلمة/(regex) هنا";
 "Type" = "النوع";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "لا توجد مصادر مفعّلة.";
 "all from %@" = "الكل من %@";
 "For example:" = "على سبيل المثال:";
-"Show upcoming stories in the right column" = "عرض الأخبار التالية في العمود الأيمن";
 "Show headlines only" = "عرض العناوين فقط";
 "Show the progress line at the bottom" = "عرض شريط التقدم في الأسفل";
 "Layout" = "التخطيط";
@@ -236,3 +234,28 @@
 "Filter" = "المرشّح";
 "Source" = "المصدر";
 "Double-click a row to open the story." = "انقر نقرًا مزدوجًا على صف لفتح الخبر.";
+
+"All stories" = "كل الأخبار";
+"New" = "جديد";
+"Read the whole story" = "اقرأ الخبر كاملًا";
+"Point your phone's camera at the code." = "وجّه كاميرا هاتفك نحو الرمز.";
+"Show a QR code to the story in the right column" = "عرض رمز QR للخبر في العمود الأيمن";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "لم يُعرض: قديم جدًا، فوق الحد الأقصى، منطقة غير مختارة أو مكرر";
+"Skip stories older than" = "تخطي الأخبار الأقدم من";
+"No limit" = "بلا حد";
+"%d h" = "%d س";
+"%d min" = "%d د";
+"Undated stories and SCB's statistics are always kept." = "تبقى الأخبار بلا تاريخ وإحصاءات SCB دائمًا.";
+"Feed or website address" = "عنوان الموجز أو الموقع";
+"Your own feeds" = "موجزاتك الخاصة";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "الصق عنوان أي موجز RSS أو Atom أو JSON، أو عنوان موقع لديه موجز. يصبح كل موجز مصدرًا مستقلًا.";
+"Delete" = "حذف";
+"Couldn't reach that address." = "تعذّر الوصول إلى هذا العنوان.";
+"No news feed found at that address." = "لم يُعثر على موجز أخبار في هذا العنوان.";
+"Show new stories first, marked “New”" = "عرض الأخبار الجديدة أولًا مع علامة «جديد»";
+"Counts as new for" = "يُعد جديدًا لمدة";
+"Watchwords" = "كلمات المتابعة";
+"Words, separated by commas" = "كلمات مفصولة بفواصل";
+"Show stories not seen before first" = "عرض الأخبار التي لم تُشاهد من قبل أولًا";
+"Priority" = "الأولوية";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "الأخبار التي تذكر كلمة متابعة تُعرض أولًا أيضًا وتُعلَّم بالكلمة. يتذكر حافظ الشاشة ما عرضه لمدة أسبوع.";

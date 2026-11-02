@@ -7,7 +7,6 @@
 "Fetching…" = "Pobieranie…";
 "%d fetched, %d in the rotation" = "Pobrane: %d, w rotacji: %d";
 "Filtered by “%@”" = "Odfiltrowane przez „%@”";
-"Not shown: over the maximum, deselected region or duplicate" = "Niewyświetlane: ponad maksimum, odznaczony region lub duplikat";
 "Place %d in the rotation" = "Miejsce %d w rotacji";
 "Type word/(regex) here" = "Wpisz słowo/(regex) tutaj";
 "Type" = "Rodzaj";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "Żadne źródło nie jest włączone.";
 "all from %@" = "wszystkie z %@";
 "For example:" = "Na przykład:";
-"Show upcoming stories in the right column" = "Pokazuj nadchodzące wiadomości w prawej kolumnie";
 "Show headlines only" = "Pokazuj tylko nagłówki";
 "Show the progress line at the bottom" = "Pokazuj pasek postępu na dole";
 "Layout" = "Układ";
@@ -236,3 +234,28 @@
 "Filter" = "Filtr";
 "Source" = "Źródło";
 "Double-click a row to open the story." = "Kliknij dwukrotnie wiersz, aby otworzyć wiadomość.";
+
+"All stories" = "Wszystkie wiadomości";
+"New" = "Nowe";
+"Read the whole story" = "Przeczytaj całą wiadomość";
+"Point your phone's camera at the code." = "Skieruj aparat telefonu na kod.";
+"Show a QR code to the story in the right column" = "Pokazuj kod QR do wiadomości w prawej kolumnie";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Nie pokazano: za stara, ponad limit, odznaczony region lub duplikat";
+"Skip stories older than" = "Pomijaj wiadomości starsze niż";
+"No limit" = "Bez limitu";
+"%d h" = "%d godz.";
+"%d min" = "%d min";
+"Undated stories and SCB's statistics are always kept." = "Wiadomości bez daty i statystyki SCB są zawsze zachowywane.";
+"Feed or website address" = "Adres kanału lub strony";
+"Your own feeds" = "Własne kanały";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Wklej adres dowolnego kanału RSS, Atom lub JSON albo strony, która go ma. Każdy kanał staje się osobnym źródłem.";
+"Delete" = "Usuń";
+"Couldn't reach that address." = "Nie można połączyć się z tym adresem.";
+"No news feed found at that address." = "Pod tym adresem nie znaleziono kanału wiadomości.";
+"Show new stories first, marked “New”" = "Pokazuj najpierw nowe wiadomości, oznaczone „Nowe”";
+"Counts as new for" = "Uznawane za nowe przez";
+"Watchwords" = "Słowa kluczowe";
+"Words, separated by commas" = "Słowa oddzielone przecinkami";
+"Show stories not seen before first" = "Pokazuj najpierw wiadomości jeszcze niewidziane";
+"Priority" = "Priorytet";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Wiadomości zawierające słowo kluczowe też idą na początek i są nim oznaczone. Wygaszacz pamięta przez tydzień, co już pokazał.";

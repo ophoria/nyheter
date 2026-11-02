@@ -7,7 +7,6 @@
 "Fetching…" = "Wird abgerufen …";
 "%d fetched, %d in the rotation" = "%d abgerufen, %d in der Rotation";
 "Filtered by “%@”" = "Gefiltert nach „%@“";
-"Not shown: over the maximum, deselected region or duplicate" = "Nicht angezeigt: über dem Maximum, abgewählte Region oder Duplikat";
 "Place %d in the rotation" = "Platz %d in der Rotation";
 "Type word/(regex) here" = "Wort/(Regex) hier eingeben";
 "Type" = "Typ";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "Keine Quellen aktiviert.";
 "all from %@" = "alle von %@";
 "For example:" = "Zum Beispiel:";
-"Show upcoming stories in the right column" = "Kommende Meldungen in der rechten Spalte zeigen";
 "Show headlines only" = "Nur Überschriften zeigen";
 "Show the progress line at the bottom" = "Fortschrittslinie unten zeigen";
 "Layout" = "Layout";
@@ -236,3 +234,28 @@
 "Filter" = "Filter";
 "Source" = "Quelle";
 "Double-click a row to open the story." = "Doppelklicke auf eine Zeile, um die Meldung zu öffnen.";
+
+"All stories" = "Alle Meldungen";
+"New" = "Neu";
+"Read the whole story" = "Die ganze Meldung lesen";
+"Point your phone's camera at the code." = "Richte die Handykamera auf den Code.";
+"Show a QR code to the story in the right column" = "QR-Code zur Meldung in der rechten Spalte zeigen";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Nicht angezeigt: zu alt, über dem Maximum, abgewählte Region oder doppelt";
+"Skip stories older than" = "Meldungen überspringen, die älter sind als";
+"No limit" = "Keine Grenze";
+"%d h" = "%d Std.";
+"%d min" = "%d Min.";
+"Undated stories and SCB's statistics are always kept." = "Meldungen ohne Datum und die Statistiken der SCB bleiben immer.";
+"Feed or website address" = "Adresse eines Feeds oder einer Website";
+"Your own feeds" = "Eigene Feeds";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Füge die Adresse eines RSS-, Atom- oder JSON-Feeds ein, oder einer Website, die einen hat. Jeder Feed wird zu einer eigenen Quelle.";
+"Delete" = "Löschen";
+"Couldn't reach that address." = "Diese Adresse ist nicht erreichbar.";
+"No news feed found at that address." = "Unter dieser Adresse wurde kein Nachrichten-Feed gefunden.";
+"Show new stories first, marked “New”" = "Neue Meldungen zuerst zeigen, markiert mit „Neu“";
+"Counts as new for" = "Gilt als neu für";
+"Watchwords" = "Stichwörter";
+"Words, separated by commas" = "Wörter, durch Kommas getrennt";
+"Show stories not seen before first" = "Noch nicht gesehene Meldungen zuerst zeigen";
+"Priority" = "Priorität";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Meldungen, die ein Stichwort nennen, kommen ebenfalls zuerst und werden mit dem Wort markiert. Der Bildschirmschoner merkt sich eine Woche lang, was er gezeigt hat.";

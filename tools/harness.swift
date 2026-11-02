@@ -18,11 +18,13 @@ for id in Sources.providerIDs where !(ProcessInfo.processInfo.environment["SOURC
     settings.updateSource(id) { $0.enabled = false }
 }
 let env = ProcessInfo.processInfo.environment
-settings.showUpcoming = env["NO_COLUMN"] == nil
+settings.showQRCode = env["NO_COLUMN"] == nil
 settings.headlineOnly = env["HEADLINE_ONLY"] != nil
 settings.showProgress = env["NO_PROGRESS"] == nil
 settings.randomTheme = env["RANDOM_THEME"] != nil
 settings.language = env["NYHETER_LANG"]
+// WATCHWORDS=a,b marks matching stories as breaking (to check the tag).
+settings.watchwords = (env["WATCHWORDS"] ?? "").split(separator: ",").map(String.init)
 
 let frame = NSRect(x: 0, y: 0, width: 1920, height: 1080)
 let window = NSWindow(contentRect: frame, styleMask: .borderless, backing: .buffered, defer: false)

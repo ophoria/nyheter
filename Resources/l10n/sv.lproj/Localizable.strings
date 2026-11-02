@@ -7,7 +7,6 @@
 "Fetching…" = "Hämtar…";
 "%d fetched, %d in the rotation" = "%d hämtade, %d i rotationen";
 "Filtered by “%@”" = "Filtrerad av ”%@”";
-"Not shown: over the maximum, deselected region or duplicate" = "Visas inte: över maxantalet, bortvald region eller dubblett";
 "Place %d in the rotation" = "Plats %d i rotationen";
 "Type word/(regex) here" = "Skriv ord/(regex) här";
 "Type" = "Typ";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "Inga källor är påslagna.";
 "all from %@" = "alla från %@";
 "For example:" = "Till exempel:";
-"Show upcoming stories in the right column" = "Visa kommande nyheter i högerspalten";
 "Show headlines only" = "Visa bara rubriker";
 "Show the progress line at the bottom" = "Visa tidslinjen längst ned";
 "Layout" = "Layout";
@@ -236,3 +234,28 @@
 "Filter" = "Filter";
 "Source" = "Källa";
 "Double-click a row to open the story." = "Dubbelklicka på en rad för att öppna nyheten.";
+
+"All stories" = "Alla nyheter";
+"New" = "Ny";
+"Read the whole story" = "Läs hela nyheten";
+"Point your phone's camera at the code." = "Rikta mobilens kamera mot koden.";
+"Show a QR code to the story in the right column" = "Visa en QR-kod till nyheten i högerspalten";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Visas inte: för gammal, över maxantalet, bortvald region eller dubblett";
+"Skip stories older than" = "Hoppa över nyheter äldre än";
+"No limit" = "Ingen gräns";
+"%d h" = "%d tim";
+"%d min" = "%d min";
+"Undated stories and SCB's statistics are always kept." = "Nyheter utan datum och SCB:s statistik visas alltid.";
+"Feed or website address" = "Adress till flöde eller webbplats";
+"Your own feeds" = "Egna flöden";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Klistra in adressen till ett RSS-, Atom- eller JSON-flöde, eller till en webbplats som har ett. Varje flöde blir en egen källa.";
+"Delete" = "Radera";
+"Couldn't reach that address." = "Kunde inte nå den adressen.";
+"No news feed found at that address." = "Hittade inget nyhetsflöde på den adressen.";
+"Show new stories first, marked “New”" = "Visa nya nyheter först, märkta ”Ny”";
+"Counts as new for" = "Räknas som ny i";
+"Watchwords" = "Bevakningsord";
+"Words, separated by commas" = "Ord, åtskilda med kommatecken";
+"Show stories not seen before first" = "Visa nyheter du inte sett förut först";
+"Priority" = "Prioritet";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Nyheter som nämner ett bevakningsord visas också först och märks med ordet. Skärmsläckaren minns vad den har visat i en vecka.";

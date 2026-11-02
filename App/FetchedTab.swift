@@ -139,7 +139,7 @@ private struct StoryRow: View {
                 Text(position.map { "#\($0)" } ?? "–")
                     .font(.caption.monospacedDigit().weight(.semibold))
                     .foregroundStyle(position == nil ? Color.secondary : Color.accentColor)
-                    .help(position == nil ? L("Not shown: over the maximum, deselected region or duplicate") : L("Place %d in the rotation", position!))
+                    .help(position == nil ? L("Not shown: too old, over the maximum, deselected region or duplicate") : L("Place %d in the rotation", position!))
             }
         }
         .opacity(position == nil && !hovering ? 0.5 : 1)

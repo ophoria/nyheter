@@ -7,7 +7,6 @@
 "Fetching…" = "Mengambil…";
 "%d fetched, %d in the rotation" = "%d diambil, %d dalam rotasi";
 "Filtered by “%@”" = "Difilter dengan “%@”";
-"Not shown: over the maximum, deselected region or duplicate" = "Tidak ditampilkan: melebihi maksimum, wilayah tidak dipilih, atau duplikat";
 "Place %d in the rotation" = "Urutan %d dalam rotasi";
 "Type word/(regex) here" = "Ketik kata/(regex) di sini";
 "Type" = "Jenis";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "Tidak ada sumber yang aktif.";
 "all from %@" = "semua dari %@";
 "For example:" = "Misalnya:";
-"Show upcoming stories in the right column" = "Tampilkan berita berikutnya di kolom kanan";
 "Show headlines only" = "Tampilkan judul saja";
 "Show the progress line at the bottom" = "Tampilkan garis kemajuan di bawah";
 "Layout" = "Tata letak";
@@ -236,3 +234,28 @@
 "Filter" = "Filter";
 "Source" = "Sumber";
 "Double-click a row to open the story." = "Klik dua kali baris untuk membuka berita.";
+
+"All stories" = "Semua berita";
+"New" = "Baru";
+"Read the whole story" = "Baca berita lengkap";
+"Point your phone's camera at the code." = "Arahkan kamera ponsel ke kode.";
+"Show a QR code to the story in the right column" = "Tampilkan kode QR berita di kolom kanan";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Tidak ditampilkan: terlalu lama, melebihi batas, wilayah tidak dipilih, atau duplikat";
+"Skip stories older than" = "Lewati berita yang lebih lama dari";
+"No limit" = "Tanpa batas";
+"%d h" = "%d jam";
+"%d min" = "%d mnt";
+"Undated stories and SCB's statistics are always kept." = "Berita tanpa tanggal dan statistik SCB selalu disimpan.";
+"Feed or website address" = "Alamat feed atau situs web";
+"Your own feeds" = "Feed sendiri";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Tempel alamat feed RSS, Atom, atau JSON apa pun, atau situs web yang memilikinya. Setiap feed menjadi sumber tersendiri.";
+"Delete" = "Hapus";
+"Couldn't reach that address." = "Alamat itu tidak dapat dijangkau.";
+"No news feed found at that address." = "Tidak ada feed berita di alamat itu.";
+"Show new stories first, marked “New”" = "Tampilkan berita baru lebih dulu, bertanda “Baru”";
+"Counts as new for" = "Dianggap baru selama";
+"Watchwords" = "Kata pantauan";
+"Words, separated by commas" = "Kata, dipisahkan koma";
+"Show stories not seen before first" = "Tampilkan berita yang belum dilihat lebih dulu";
+"Priority" = "Prioritas";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Berita yang menyebut kata pantauan juga ditampilkan lebih dulu dan ditandai dengan kata itu. Screen saver mengingat apa yang sudah ditampilkan selama seminggu.";

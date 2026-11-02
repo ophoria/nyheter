@@ -3,7 +3,7 @@ import Foundation
 /// A news outlet the app can show: its feeds, the sections it uses and what can be configured for it.
 /// The app's settings only show providers the user has switched on.
 struct Provider: Identifiable {
-    enum Style { case svt, sr, dn, scb, nyt, bbc, msnow }
+    enum Style { case svt, sr, dn, scb, nyt, bbc, msnow, reuters, generic }
 
     struct Feed: Identifiable {
         let id: String
@@ -25,7 +25,8 @@ struct Provider: Identifiable {
     var localRegions = false       // SVT: regional news with a choice of regions
     var itemLimit = false          // SCB: few, slow-moving items with their own cap
 
-    var flag: String { ["SE": "🇸🇪", "US": "🇺🇸", "GB": "🇬🇧"][country] ?? "🏳️" }
+    var flag: String { ["SE": "🇸🇪", "US": "🇺🇸", "GB": "🇬🇧"][country] ?? "📰" }
+    var isCustom: Bool { style == .generic }
 }
 
 struct Story: Codable {
@@ -52,7 +53,13 @@ struct FeedRequest {
 enum Sources {
     static let svtLocalFeed = "svt-local"
 
-    static let providers: [Provider] = [
+    /// The built-in providers plus the user's own feeds (`custom`).
+    static var providers: [Provider] { builtIn + custom.map(\.provider) }
+
+    /// The user's own feeds, from the settings in use. Set wherever settings are loaded or applied.
+    static var custom: [CustomFeed] = []
+
+    static let builtIn: [Provider] = [
         Provider(id: "svt", name: "SVT Nyheter", label: "SVT", language: "sv", country: "SE", style: .svt, feeds: [
             .init(id: "svt-top", name: "Top stories", url: "https://www.svt.se/nyheter/rss.xml", defaultOn: true),
             .init(id: "svt-inrikes", name: "Domestic", url: "https://www.svt.se/nyheter/inrikes/rss.xml"),
@@ -101,9 +108,27 @@ enum Sources {
             .init(id: "msnow-politics", name: "Politics", url: "https://www.ms.now/category/politics/feed", section: "Politik"),
             .init(id: "msnow-opinion", name: "Opinion", url: "https://www.ms.now/category/opinion/feed", section: "Debatt"),
         ], sections: ["Politik", "Debatt"]),
+        // Reuters has no RSS of its own any more; Google News searches limited to reuters.com stand in (headlines only).
+        Provider(id: "reuters", name: "Reuters", label: "Reuters", language: "en", country: "GB", style: .reuters, feeds: [
+            .init(id: "reuters-top", name: "Top stories", url: reutersSearch("site:reuters.com"), defaultOn: true),
+            .init(id: "reuters-world", name: "World", url: reutersSearch("site:reuters.com/world"), section: "Världen"),
+            .init(id: "reuters-business", name: "Business", url: reutersSearch("site:reuters.com/business"), section: "Ekonomi"),
+            .init(id: "reuters-sports", name: "Sport", url: reutersSearch("site:reuters.com/sports"), section: "Sport"),
+        ], sections: ["Världen", "Ekonomi", "Sport"]),
     ]
 
-    static let providerIDs = providers.map(\.id)
+    private static func reutersSearch(_ query: String) -> String {
+        "https://news.google.com/rss/search?q=\(query)+when:1d&hl=en-US&gl=US&ceid=US:en"
+    }
+
+    static let providerIDs = builtIn.map(\.id)
+
+    /// Built-in source whose colours a source without its own borrows (the user's feeds).
+    static func paletteKey(_ id: String) -> String {
+        guard let i = custom.firstIndex(where: { $0.id == id }) else { return id }
+        let palette = ["sr", "dn", "scb", "bbc", "msnow", "nyt", "svt"]
+        return palette[i % palette.count]
+    }
 
     static func provider(_ id: String) -> Provider? { providers.first { $0.id == id } }
 
@@ -155,7 +180,8 @@ enum Sources {
             let config = s.source(provider.id)
             func add(_ feed: Provider.Feed, url: String? = nil, id: String? = nil) {
                 let feedID = id ?? feed.id
-                out.append(FeedRequest(source: provider.id, feed: feedID, url: URL(string: url ?? feed.url)!,
+                guard let address = URL(string: url ?? feed.url), address.scheme?.hasPrefix("http") == true else { return }
+                out.append(FeedRequest(source: provider.id, feed: feedID, url: address,
                                        parse: { parse($0, provider: provider, feed: feed, feedID: feedID) }))
             }
             for feed in provider.feeds where feed.id != svtLocalFeed && s.isOn(feed, of: provider) { add(feed) }
@@ -174,9 +200,12 @@ enum Sources {
     }
 
     /// Filters, dedupes and caps each source, then orders them by the chosen mode.
-    static func assemble(_ fetched: [Story], settings s: NyheterSettings) -> [Story] {
+    /// Breaking stories come first, then (if chosen) stories not shown before, then the rest.
+    static func assemble(_ fetched: [Story], settings s: NyheterSettings, seen: Set<String> = [], now: Date = Date()) -> [Story] {
         var bySource: [String: [Story]] = [:]
-        for story in fetched where s.isEnabled(story.source) { bySource[story.source, default: []].append(story) }
+        for story in fetched where s.isEnabled(story.source) && !s.isTooOld(story, now: now) {
+            bySource[story.source, default: []].append(story)
+        }
 
         for (id, list) in bySource {
             guard let provider = provider(id) else { continue }
@@ -226,8 +255,15 @@ enum Sources {
         }
 
         // The same story often runs under the same headline at several outlets; keep the first.
-        var seen = Set<String>()
-        return Array(ordered.filter { seen.insert(titleKey($0.title)).inserted }.prefix(NyheterSettings.maxStories))
+        var unique = Set<String>()
+        ordered = Array(ordered.filter { unique.insert(titleKey($0.title)).inserted }.prefix(NyheterSettings.maxStories))
+
+        let breaking = ordered.filter { s.breakingLabel(for: $0, now: now) != nil }.sorted { $0.date > $1.date }
+        let breakingKeys = Set(breaking.map { titleKey($0.title) })
+        let rest = ordered.filter { !breakingKeys.contains(titleKey($0.title)) }
+        guard s.unseenFirst else { return breaking + rest }
+        let isSeen = { (story: Story) in seen.contains(titleKey(story.title)) }
+        return breaking.filter { !isSeen($0) } + rest.filter { !isSeen($0) } + breaking.filter(isSeen) + rest.filter(isSeen)
     }
 
     /// The enabled sources in a custom order (others are remembered but skipped),
@@ -243,6 +279,7 @@ enum Sources {
 
     /// Human-readable name of a feed id in the app's language, e.g. "svt-skane" → "SVT · Local: Skåne".
     static func feedName(_ feedID: String) -> String {
+        if let feed = custom.first(where: { $0.id == feedID }) { return feed.name }
         for provider in providers {
             if let feed = provider.feeds.first(where: { $0.id == feedID }) { return provider.label + " · " + L(feed.name) }
         }
@@ -257,6 +294,7 @@ enum Sources {
         case .dn: return parseDN(data, feed: feedID)
         case .scb: return parseSCB(data, feed: feedID)
         case .nyt, .bbc, .msnow: return parseEnglish(data, provider: provider, feed: feed)
+        case .reuters, .generic: return parseGeneric(data, provider: provider, feed: feed)
         }
     }
 
@@ -332,6 +370,29 @@ enum Sources {
         }
     }
 
+    /// Reuters and the user's own feeds: any RSS, Atom or JSON Feed. The section comes from the feed,
+    /// else from the item's own category when it is one Nyheter knows.
+    static func parseGeneric(_ data: Data, provider: Provider, feed: Provider.Feed) -> [Story] {
+        FeedParser.items(in: data).compactMap { item in
+            guard var title = item["title"].map(plainText), !title.isEmpty else { return nil }
+            if provider.style == .reuters {
+                // Searches also turn up quote and index pages ("… | Stock Price & Latest News").
+                guard !title.contains(" | "), title.split(separator: " ").count >= 4 else { return nil }
+                if title.hasSuffix(" - Reuters") { title = String(title.dropLast(10)) }
+            }
+            let html = item["description"] ?? item["summary"] ?? item["content:encoded"] ?? item["content"] ?? ""
+            var summary = captures(#"<p[^>]*>(.*?)</p>"#, in: html).lazy.map(plainText).first { !$0.isEmpty } ?? plainText(html)
+            // Aggregators (Google News) repeat the headline as the description.
+            if summary.hasPrefix(title) || provider.style == .reuters { summary = "" }
+            if summary.count > 600 { summary = String(summary.prefix(600)) }
+            let image = item["image"] ?? captures(#"<img[^>]+src="([^"]+)""#, in: item["content:encoded"] ?? html).first
+            let category = item["category"].map { $0.lowercased() }.flatMap { englishSections[$0] ?? swedishSections[$0] }
+            return Story(source: provider.id, feed: feed.id, title: title, body: summary.isEmpty ? [] : [summary], bullets: false,
+                         date: anyDate(item), category: feed.section ?? category ?? "Nyheter",
+                         imageURL: image.flatMap(URL.init(string:)), link: articleURL(item))
+        }
+    }
+
     // MARK: - Helpers
 
     /// RSS <link> text or Atom <link href>; SCB's feed still says http, so upgrade to https.
@@ -341,7 +402,8 @@ enum Sources {
         return URL(string: link)
     }
 
-    private static func titleKey(_ title: String) -> String {
+    /// A headline reduced to letters and digits, to spot the same story from several feeds or runs.
+    static func titleKey(_ title: String) -> String {
         title.lowercased().filter { $0.isLetter || $0.isNumber }
     }
 
@@ -352,7 +414,7 @@ enum Sources {
     private static func rssDate(_ s: String?) -> Date {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
-        for format in ["EEE, d MMM yyyy HH:mm:ss Z", "EEE, dd MMM yyyy HH:mm:ss zzz"] {
+        for format in ["EEE, d MMM yyyy HH:mm:ss Z", "EEE, dd MMM yyyy HH:mm:ss zzz", "EEE, d MMM yyyy HH:mm Z", "d MMM yyyy HH:mm:ss Z"] {
             f.dateFormat = format
             if let s, let date = f.date(from: s) { return date }
         }
@@ -360,7 +422,18 @@ enum Sources {
     }
 
     private static func isoDate(_ s: String?) -> Date {
-        s.flatMap(ISO8601DateFormatter().date(from:)) ?? .distantPast
+        guard let s else { return .distantPast }
+        let f = ISO8601DateFormatter()
+        if let date = f.date(from: s) { return date }
+        f.formatOptions.insert(.withFractionalSeconds)
+        return f.date(from: s) ?? .distantPast
+    }
+
+    /// RSS pubDate, Atom published/updated or Dublin Core dc:date, whichever the feed has.
+    private static func anyDate(_ item: [String: String]) -> Date {
+        let rss = rssDate(item["pubDate"])
+        if rss != .distantPast { return rss }
+        return [item["published"], item["updated"], item["dc:date"]].lazy.map(isoDate).first { $0 != .distantPast } ?? .distantPast
     }
 
     private static func captures(_ pattern: String, in s: String) -> [String] {
@@ -369,9 +442,11 @@ enum Sources {
         return re.matches(in: s, range: NSRange(location: 0, length: ns.length)).map { ns.substring(with: $0.range(at: 1)) }
     }
 
-    private static func plainText(_ html: String) -> String {
+    static func plainText(_ html: String) -> String {
         var s = html.replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
-        for (entity, char) in ["&nbsp;": " ", "&quot;": "\"", "&#39;": "'", "&lt;": "<", "&gt;": ">", "&amp;": "&"] {
+        for (entity, char) in ["&nbsp;": " ", "&quot;": "\"", "&#39;": "'", "&#039;": "'", "&rsquo;": "’", "&lsquo;": "‘",
+                               "&ldquo;": "“", "&rdquo;": "”", "&ndash;": "–", "&mdash;": "—", "&hellip;": "…",
+                               "&lt;": "<", "&gt;": ">", "&amp;": "&"] {
             s = s.replacingOccurrences(of: entity, with: char)
         }
         return s.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
@@ -379,18 +454,23 @@ enum Sources {
     }
 }
 
-/// Flattens RSS <item> and Atom <entry> elements into dictionaries of child text.
-private final class FeedParser: NSObject, XMLParserDelegate {
+/// Flattens RSS <item> and Atom <entry> elements (and JSON Feed items) into dictionaries of child text.
+final class FeedParser: NSObject, XMLParserDelegate {
     private var items: [[String: String]] = []
     private var current: [String: String]?
     private var text = ""
+    private var feedTitle: String?
 
-    static func items(in data: Data) -> [[String: String]] {
+    static func items(in data: Data) -> [[String: String]] { parse(data).items }
+
+    /// The feed's own title (RSS channel, Atom feed or JSON Feed) and its items.
+    static func parse(_ data: Data) -> (title: String?, items: [[String: String]]) {
+        if let json = JSONFeed.parse(data) { return json }
         let delegate = FeedParser()
         let parser = XMLParser(data: data)
         parser.delegate = delegate
         parser.parse()
-        return delegate.items.filter { !($0["title"] ?? "").isEmpty }
+        return (delegate.feedTitle, delegate.items.filter { !($0["title"] ?? "").isEmpty })
     }
 
     func parser(_ parser: XMLParser, didStartElement name: String, namespaceURI: String?,
@@ -399,7 +479,9 @@ private final class FeedParser: NSObject, XMLParserDelegate {
         if name == "item" || name == "entry" {
             current = [:]
         } else if current != nil {
-            if name == "link", let href = attributes["href"] { current?["link"] = href }
+            // Atom entries can have several links; the article is the alternate one.
+            if name == "link", let href = attributes["href"], current?["link"] == nil,
+               [nil, "alternate"].contains(attributes["rel"]) { current?["link"] = href }
             if name == "category", let term = attributes["term"], !term.isEmpty { current?["category"] = term }
             if ["media:content", "media:thumbnail", "enclosure"].contains(name), let url = attributes["url"], current?["image"] == nil {
                 current?["image"] = url
@@ -415,10 +497,54 @@ private final class FeedParser: NSObject, XMLParserDelegate {
         if name == "item" || name == "entry" {
             if let current { items.append(current) }
             current = nil
+        } else if current == nil, name == "title", feedTitle == nil {
+            feedTitle = Sources.plainText(text)
         } else if current != nil, current?[name] == nil {
             let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
             if !value.isEmpty { current?[name] = value }
         }
         text = ""
+    }
+}
+
+/// JSON Feed (jsonfeed.org) items in the same shape as the XML parser's.
+private enum JSONFeed {
+    static func parse(_ data: Data) -> (title: String?, items: [[String: String]])? {
+        guard data.first(where: { !($0 == 0x20 || $0 == 0x0a || $0 == 0x0d || $0 == 0x09) }) == UInt8(ascii: "{"),
+              let feed = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              (feed["version"] as? String)?.contains("jsonfeed") == true,
+              let list = feed["items"] as? [[String: Any]] else { return nil }
+        let items = list.map { item in
+            var out: [String: String] = [:]
+            out["title"] = item["title"] as? String
+            out["link"] = (item["url"] ?? item["external_url"]) as? String
+            out["description"] = (item["summary"] ?? item["content_html"] ?? item["content_text"]) as? String
+            out["published"] = (item["date_published"] ?? item["date_modified"]) as? String
+            out["image"] = (item["image"] ?? item["banner_image"]) as? String
+            out["category"] = (item["tags"] as? [String])?.first
+            return out.compactMapValues { $0 }
+        }
+        return (feed["title"] as? String, items.filter { !($0["title"] ?? "").isEmpty })
+    }
+}
+
+/// A feed the user added: any RSS, Atom or JSON Feed address. Shown as a source of its own.
+struct CustomFeed: Codable, Equatable, Identifiable {
+    var id: String
+    var name: String
+    var url: String
+    var language = "en"
+
+    init(name: String, url: String, language: String) {
+        id = "custom-" + UUID().uuidString.prefix(8).lowercased()
+        self.name = name
+        self.url = url
+        self.language = language
+    }
+
+    var provider: Provider {
+        Provider(id: id, name: name, label: name.count > 22 ? String(name.prefix(21)) + "…" : name, language: language,
+                 country: "", style: .generic, feeds: [.init(id: id, name: "All stories", url: url, defaultOn: true)],
+                 sections: [], defaultEnabled: true)
     }
 }

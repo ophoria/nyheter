@@ -8,8 +8,8 @@ struct ThemeTab: View {
             VStack(spacing: 12) {
                 GroupBox {
                     VStack(alignment: .leading, spacing: 10) {
-                        Toggle(isOn: $store.settings.showUpcoming) {
-                            Label { Text(L("Show upcoming stories in the right column")) } icon: { LucideIcon("panel-right") }
+                        Toggle(isOn: $store.settings.showQRCode) {
+                            Label { Text(L("Show a QR code to the story in the right column")) } icon: { LucideIcon("panel-right") }
                         }
                         Toggle(isOn: $store.settings.headlineOnly) {
                             Label { Text(L("Show headlines only")) } icon: { LucideIcon("heading") }
@@ -50,7 +50,7 @@ struct ThemeTab: View {
                                   marker: store.settings.themeID == theme.id ? "check" : nil, sources: sourceIDs)
                             .onTapGesture {
                                 store.settings.themeID = theme.id
-                                if theme.hidesColumn { store.settings.showUpcoming = false }
+                                if theme.hidesColumn { store.settings.showQRCode = false }
                             }
                     }
                 }

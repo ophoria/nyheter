@@ -12,6 +12,7 @@ final class NyheterSaverView: ScreenSaverView {
         super.init(frame: frame, isPreview: isPreview)
         animationTimeInterval = 0.1
         canvas = NewsCanvas(frame: bounds, settings: .load())
+        canvas.recordsSeen = !isPreview
         canvas.autoresizingMask = [.width, .height]
         addSubview(canvas)
 

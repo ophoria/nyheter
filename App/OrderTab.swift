@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OrderTab: View {
     @EnvironmentObject private var store: SettingsStore
+    @State private var watchwords = ""
 
     var body: some View {
         let s = store.settings
@@ -68,6 +69,27 @@ struct OrderTab: View {
                 }
             case .random:
                 EmptyView()
+            }
+
+            Section {
+                Toggle(L("Show new stories first, marked “New”"), isOn: $store.settings.breakingFirst)
+                if s.breakingFirst {
+                    Picker(L("Counts as new for"), selection: $store.settings.breakingMinutes) {
+                        ForEach(NyheterSettings.breakingChoices, id: \.self) { minutes in
+                            Text(minutes < 60 ? L("%d min", minutes) : L("%d h", minutes / 60)).tag(minutes)
+                        }
+                    }
+                    TextField(L("Watchwords"), text: $watchwords, prompt: Text(L("Words, separated by commas")))
+                        .onAppear { watchwords = s.watchwords.joined(separator: ", ") }
+                        .onChange(of: watchwords) { _, text in
+                            store.settings.watchwords = text.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                        }
+                }
+                Toggle(L("Show stories not seen before first"), isOn: $store.settings.unseenFirst)
+            } header: {
+                SectionHeader(L("Priority"), icon: "radio")
+            } footer: {
+                Text(L("Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week."))
             }
 
             Section {

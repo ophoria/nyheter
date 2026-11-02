@@ -7,7 +7,6 @@
 "Fetching…" = "আনা হচ্ছে…";
 "%d fetched, %d in the rotation" = "%1$dটি আনা হয়েছে, %2$dটি ঘূর্ণনে";
 "Filtered by “%@”" = "“%@” দিয়ে ফিল্টার করা";
-"Not shown: over the maximum, deselected region or duplicate" = "দেখানো হয়নি: সর্বোচ্চ সীমার বেশি, অনির্বাচিত অঞ্চল বা পুনরাবৃত্তি";
 "Place %d in the rotation" = "ঘূর্ণনে %d নম্বর স্থান";
 "Type word/(regex) here" = "এখানে শব্দ/(regex) লেখো";
 "Type" = "ধরন";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "কোনো উৎস চালু নেই।";
 "all from %@" = "%@ থেকে সব";
 "For example:" = "উদাহরণস্বরূপ:";
-"Show upcoming stories in the right column" = "ডান কলামে আসন্ন খবর দেখান";
 "Show headlines only" = "শুধু শিরোনাম দেখান";
 "Show the progress line at the bottom" = "নিচে অগ্রগতির রেখা দেখান";
 "Layout" = "বিন্যাস";
@@ -236,3 +234,28 @@
 "Filter" = "ফিল্টার";
 "Source" = "উৎস";
 "Double-click a row to open the story." = "খবরটি খুলতে একটি সারিতে ডাবল-ক্লিক করুন।";
+
+"All stories" = "সব খবর";
+"New" = "নতুন";
+"Read the whole story" = "পুরো খবর পড়ুন";
+"Point your phone's camera at the code." = "ফোনের ক্যামেরা কোডের দিকে ধরুন।";
+"Show a QR code to the story in the right column" = "ডান কলামে খবরের QR কোড দেখান";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "দেখানো হয়নি: খুব পুরোনো, সীমার বেশি, অঞ্চল বাছা হয়নি বা একই খবর";
+"Skip stories older than" = "এর চেয়ে পুরোনো খবর বাদ দিন";
+"No limit" = "কোনো সীমা নেই";
+"%d h" = "%d ঘণ্টা";
+"%d min" = "%d মিনিট";
+"Undated stories and SCB's statistics are always kept." = "তারিখহীন খবর আর SCB-এর পরিসংখ্যান সবসময় রাখা হয়।";
+"Feed or website address" = "ফিড বা ওয়েবসাইটের ঠিকানা";
+"Your own feeds" = "নিজের ফিড";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "যেকোনো RSS, Atom বা JSON ফিডের ঠিকানা পেস্ট করুন, বা এমন ওয়েবসাইটের যার ফিড আছে। প্রতিটি ফিড একটি আলাদা উৎস হয়ে যায়।";
+"Delete" = "মুছুন";
+"Couldn't reach that address." = "ওই ঠিকানায় পৌঁছানো যায়নি।";
+"No news feed found at that address." = "ওই ঠিকানায় কোনো খবরের ফিড পাওয়া যায়নি।";
+"Show new stories first, marked “New”" = "নতুন খবর আগে দেখান, “নতুন” চিহ্ন দিয়ে";
+"Counts as new for" = "এতক্ষণ নতুন ধরা হবে";
+"Watchwords" = "নজরের শব্দ";
+"Words, separated by commas" = "শব্দ, কমা দিয়ে আলাদা";
+"Show stories not seen before first" = "আগে না দেখা খবর আগে দেখান";
+"Priority" = "অগ্রাধিকার";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "নজরের শব্দ থাকা খবরও আগে আসে এবং সেই শব্দ দিয়ে চিহ্নিত হয়। স্ক্রিন সেভার এক সপ্তাহ মনে রাখে কী দেখিয়েছে।";

@@ -7,7 +7,6 @@
 "Fetching…" = "ला रहा है…";
 "%d fetched, %d in the rotation" = "%d लाई गईं, %d रोटेशन में";
 "Filtered by “%@”" = "“%@” द्वारा फ़िल्टर की गई";
-"Not shown: over the maximum, deselected region or duplicate" = "नहीं दिखाई गई: अधिकतम से ज़्यादा, अचयनित क्षेत्र या डुप्लिकेट";
 "Place %d in the rotation" = "रोटेशन में स्थान %d";
 "Type word/(regex) here" = "यहाँ शब्द/(regex) लिखो";
 "Type" = "प्रकार";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "कोई स्रोत सक्षम नहीं है।";
 "all from %@" = "%@ की सभी";
 "For example:" = "उदाहरण के लिए:";
-"Show upcoming stories in the right column" = "दाएँ कॉलम में आने वाली ख़बरें दिखाएँ";
 "Show headlines only" = "केवल हेडलाइन दिखाएँ";
 "Show the progress line at the bottom" = "नीचे प्रगति रेखा दिखाएँ";
 "Layout" = "लेआउट";
@@ -236,3 +234,28 @@
 "Filter" = "फ़िल्टर";
 "Source" = "स्रोत";
 "Double-click a row to open the story." = "ख़बर खोलने के लिए किसी पंक्ति पर डबल-क्लिक करें।";
+
+"All stories" = "सभी ख़बरें";
+"New" = "नई";
+"Read the whole story" = "पूरी ख़बर पढ़ें";
+"Point your phone's camera at the code." = "अपने फ़ोन का कैमरा कोड की ओर करें।";
+"Show a QR code to the story in the right column" = "दाएँ कॉलम में ख़बर का QR कोड दिखाएँ";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "नहीं दिखाई गई: बहुत पुरानी, सीमा से ज़्यादा, क्षेत्र नहीं चुना या दोहराई गई";
+"Skip stories older than" = "इससे पुरानी ख़बरें छोड़ें";
+"No limit" = "कोई सीमा नहीं";
+"%d h" = "%d घंटे";
+"%d min" = "%d मिनट";
+"Undated stories and SCB's statistics are always kept." = "बिना तारीख़ वाली ख़बरें और SCB के आँकड़े हमेशा रखे जाते हैं।";
+"Feed or website address" = "फ़ीड या वेबसाइट का पता";
+"Your own feeds" = "अपनी फ़ीड";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "किसी भी RSS, Atom या JSON फ़ीड का पता चिपकाएँ, या ऐसी वेबसाइट का जिसकी फ़ीड हो। हर फ़ीड एक अलग स्रोत बन जाती है।";
+"Delete" = "हटाएँ";
+"Couldn't reach that address." = "उस पते तक नहीं पहुँच सके।";
+"No news feed found at that address." = "उस पते पर कोई समाचार फ़ीड नहीं मिली।";
+"Show new stories first, marked “New”" = "नई ख़बरें पहले दिखाएँ, “नई” चिह्न के साथ";
+"Counts as new for" = "इतने समय तक नई मानी जाए";
+"Watchwords" = "निगरानी शब्द";
+"Words, separated by commas" = "शब्द, अल्पविराम से अलग";
+"Show stories not seen before first" = "पहले न देखी गई ख़बरें पहले दिखाएँ";
+"Priority" = "प्राथमिकता";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "निगरानी शब्द वाली ख़बरें भी पहले दिखती हैं और उस शब्द से चिह्नित होती हैं। स्क्रीन सेवर एक हफ़्ते तक याद रखता है कि उसने क्या दिखाया।";

@@ -7,7 +7,6 @@
 "Fetching…" = "Récupération…";
 "%d fetched, %d in the rotation" = "%d récupérées, %d dans la rotation";
 "Filtered by “%@”" = "Filtrée par « %@ »";
-"Not shown: over the maximum, deselected region or duplicate" = "Non affichée : au-delà du maximum, région désélectionnée ou doublon";
 "Place %d in the rotation" = "Position %d dans la rotation";
 "Type word/(regex) here" = "Tape un mot/(regex) ici";
 "Type" = "Type";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "Aucune source n’est activée.";
 "all from %@" = "tous de %@";
 "For example:" = "Par exemple :";
-"Show upcoming stories in the right column" = "Afficher les articles à venir dans la colonne de droite";
 "Show headlines only" = "Afficher uniquement les titres";
 "Show the progress line at the bottom" = "Afficher la ligne de progression en bas";
 "Layout" = "Mise en page";
@@ -236,3 +234,28 @@
 "Filter" = "Filtre";
 "Source" = "Source";
 "Double-click a row to open the story." = "Double-cliquez sur une ligne pour ouvrir l’article.";
+
+"All stories" = "Tous les articles";
+"New" = "Nouveau";
+"Read the whole story" = "Lire l’article complet";
+"Point your phone's camera at the code." = "Pointez l’appareil photo de votre téléphone vers le code.";
+"Show a QR code to the story in the right column" = "Afficher un code QR vers l’article dans la colonne de droite";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Non affiché : trop ancien, au-delà du maximum, région désélectionnée ou doublon";
+"Skip stories older than" = "Ignorer les articles de plus de";
+"No limit" = "Aucune limite";
+"%d h" = "%d h";
+"%d min" = "%d min";
+"Undated stories and SCB's statistics are always kept." = "Les articles sans date et les statistiques de SCB sont toujours conservés.";
+"Feed or website address" = "Adresse d’un flux ou d’un site web";
+"Your own feeds" = "Vos propres flux";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Collez l’adresse d’un flux RSS, Atom ou JSON, ou d’un site web qui en a un. Chaque flux devient une source à part entière.";
+"Delete" = "Supprimer";
+"Couldn't reach that address." = "Impossible de joindre cette adresse.";
+"No news feed found at that address." = "Aucun flux d’actualités trouvé à cette adresse.";
+"Show new stories first, marked “New”" = "Afficher d’abord les nouveaux articles, marqués « Nouveau »";
+"Counts as new for" = "Considéré comme nouveau pendant";
+"Watchwords" = "Mots surveillés";
+"Words, separated by commas" = "Mots séparés par des virgules";
+"Show stories not seen before first" = "Afficher d’abord les articles jamais vus";
+"Priority" = "Priorité";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Les articles qui mentionnent un mot surveillé passent aussi en premier, marqués de ce mot. L’économiseur d’écran se souvient de ce qu’il a affiché pendant une semaine.";

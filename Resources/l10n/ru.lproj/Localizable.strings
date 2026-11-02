@@ -7,7 +7,6 @@
 "Fetching…" = "Загрузка…";
 "%d fetched, %d in the rotation" = "Загружено: %d, в ротации: %d";
 "Filtered by “%@”" = "Отфильтровано по «%@»";
-"Not shown: over the maximum, deselected region or duplicate" = "Не показано: сверх максимума, регион не выбран или дубликат";
 "Place %d in the rotation" = "Место %d в ротации";
 "Type word/(regex) here" = "Введи слово/(regex) здесь";
 "Type" = "Тип";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "Нет включённых источников.";
 "all from %@" = "все из %@";
 "For example:" = "Например:";
-"Show upcoming stories in the right column" = "Показывать следующие новости в правой колонке";
 "Show headlines only" = "Показывать только заголовки";
 "Show the progress line at the bottom" = "Показывать полосу прогресса внизу";
 "Layout" = "Макет";
@@ -236,3 +234,28 @@
 "Filter" = "Фильтр";
 "Source" = "Источник";
 "Double-click a row to open the story." = "Дважды щёлкните строку, чтобы открыть новость.";
+
+"All stories" = "Все новости";
+"New" = "Новое";
+"Read the whole story" = "Читать новость целиком";
+"Point your phone's camera at the code." = "Наведите камеру телефона на код.";
+"Show a QR code to the story in the right column" = "Показывать QR-код новости в правой колонке";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Не показано: слишком старая, сверх лимита, регион не выбран или дубликат";
+"Skip stories older than" = "Пропускать новости старше";
+"No limit" = "Без ограничения";
+"%d h" = "%d ч";
+"%d min" = "%d мин";
+"Undated stories and SCB's statistics are always kept." = "Новости без даты и статистика SCB остаются всегда.";
+"Feed or website address" = "Адрес ленты или сайта";
+"Your own feeds" = "Свои ленты";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Вставьте адрес любой ленты RSS, Atom или JSON или сайта, у которого она есть. Каждая лента станет отдельным источником.";
+"Delete" = "Удалить";
+"Couldn't reach that address." = "Не удалось открыть этот адрес.";
+"No news feed found at that address." = "По этому адресу не найдено новостной ленты.";
+"Show new stories first, marked “New”" = "Сначала показывать новые новости с пометкой «Новое»";
+"Counts as new for" = "Считается новой в течение";
+"Watchwords" = "Ключевые слова";
+"Words, separated by commas" = "Слова через запятую";
+"Show stories not seen before first" = "Сначала показывать ещё не виденные новости";
+"Priority" = "Приоритет";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Новости с ключевым словом тоже идут первыми и помечаются этим словом. Заставка помнит, что показывала, в течение недели.";

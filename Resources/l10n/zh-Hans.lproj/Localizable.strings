@@ -7,7 +7,6 @@
 "Fetching…" = "正在获取…";
 "%d fetched, %d in the rotation" = "已获取 %d 条，轮播中 %d 条";
 "Filtered by “%@”" = "被“%@”过滤";
-"Not shown: over the maximum, deselected region or duplicate" = "未显示：超出上限、地区未选或重复";
 "Place %d in the rotation" = "轮播第 %d 位";
 "Type word/(regex) here" = "在此输入词语/(正则表达式)";
 "Type" = "类型";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "未启用任何来源。";
 "all from %@" = "%@ 的全部";
 "For example:" = "例如：";
-"Show upcoming stories in the right column" = "在右栏显示即将播放的新闻";
 "Show headlines only" = "仅显示标题";
 "Show the progress line at the bottom" = "在底部显示进度条";
 "Layout" = "布局";
@@ -236,3 +234,28 @@
 "Filter" = "过滤器";
 "Source" = "来源";
 "Double-click a row to open the story." = "双击一行以打开该新闻。";
+
+"All stories" = "全部新闻";
+"New" = "新";
+"Read the whole story" = "阅读全文";
+"Point your phone's camera at the code." = "用手机相机对准二维码。";
+"Show a QR code to the story in the right column" = "在右栏显示新闻的二维码";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "未显示：过旧、超出上限、未选地区或重复";
+"Skip stories older than" = "跳过早于此时间的新闻";
+"No limit" = "不限";
+"%d h" = "%d 小时";
+"%d min" = "%d 分钟";
+"Undated stories and SCB's statistics are always kept." = "无日期的新闻和瑞典统计局（SCB）的统计始终保留。";
+"Feed or website address" = "订阅源或网站地址";
+"Your own feeds" = "自定义订阅源";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "粘贴任意 RSS、Atom 或 JSON 订阅源的地址，或带有订阅源的网站地址。每个订阅源都会成为一个独立来源。";
+"Delete" = "删除";
+"Couldn't reach that address." = "无法访问该地址。";
+"No news feed found at that address." = "该地址没有找到新闻订阅源。";
+"Show new stories first, marked “New”" = "优先显示新新闻，并标记为“新”";
+"Counts as new for" = "视为新的时长";
+"Watchwords" = "关注词";
+"Words, separated by commas" = "用逗号分隔的词语";
+"Show stories not seen before first" = "优先显示未看过的新闻";
+"Priority" = "优先级";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "提到关注词的新闻也会优先显示，并标上该词。屏幕保护程序会记住一周内显示过的内容。";

@@ -7,7 +7,6 @@
 "Fetching…" = "Fetching…";
 "%d fetched, %d in the rotation" = "%d fetched, %d in the rotation";
 "Filtered by “%@”" = "Filtered by “%@”";
-"Not shown: over the maximum, deselected region or duplicate" = "Not shown: over the maximum, deselected region or duplicate";
 "Place %d in the rotation" = "Place %d in the rotation";
 "Type word/(regex) here" = "Type word/(regex) here";
 "Type" = "Type";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "No sources are enabled.";
 "all from %@" = "all from %@";
 "For example:" = "For example:";
-"Show upcoming stories in the right column" = "Show upcoming stories in the right column";
 "Show headlines only" = "Show headlines only";
 "Show the progress line at the bottom" = "Show the progress line at the bottom";
 "Layout" = "Layout";
@@ -236,3 +234,28 @@
 "Filter" = "Filter";
 "Source" = "Source";
 "Double-click a row to open the story." = "Double-click a row to open the story.";
+
+"All stories" = "All stories";
+"New" = "New";
+"Read the whole story" = "Read the whole story";
+"Point your phone's camera at the code." = "Point your phone's camera at the code.";
+"Show a QR code to the story in the right column" = "Show a QR code to the story in the right column";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Not shown: too old, over the maximum, deselected region or duplicate";
+"Skip stories older than" = "Skip stories older than";
+"No limit" = "No limit";
+"%d h" = "%d h";
+"%d min" = "%d min";
+"Undated stories and SCB's statistics are always kept." = "Undated stories and SCB's statistics are always kept.";
+"Feed or website address" = "Feed or website address";
+"Your own feeds" = "Your own feeds";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own.";
+"Delete" = "Delete";
+"Couldn't reach that address." = "Couldn't reach that address.";
+"No news feed found at that address." = "No news feed found at that address.";
+"Show new stories first, marked “New”" = "Show new stories first, marked “New”";
+"Counts as new for" = "Counts as new for";
+"Watchwords" = "Watchwords";
+"Words, separated by commas" = "Words, separated by commas";
+"Show stories not seen before first" = "Show stories not seen before first";
+"Priority" = "Priority";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week.";

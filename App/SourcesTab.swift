@@ -5,6 +5,9 @@ import SwiftUI
 struct SourcesTab: View {
     @EnvironmentObject private var store: SettingsStore
     @EnvironmentObject private var log: FetchLog
+    @State private var newFeed = ""
+    @State private var finding = false
+    @State private var findError: String?
 
     var body: some View {
         let s = store.settings
@@ -16,8 +19,36 @@ struct SourcesTab: View {
                             .tag(minutes)
                     }
                 }
+                Picker(L("Skip stories older than"), selection: $store.settings.maxAgeHours) {
+                    ForEach(NyheterSettings.maxAgeChoices, id: \.self) { hours in
+                        Text(hours == 0 ? L("No limit") : L("%d h", hours)).tag(hours)
+                    }
+                }
             } header: {
                 SectionHeader(L("Updates"), icon: "refresh-cw")
+            } footer: {
+                Text(L("Undated stories and SCB's statistics are always kept."))
+            }
+
+            Section {
+                HStack {
+                    TextField(L("Feed or website address"), text: $newFeed, prompt: Text(L("Feed or website address")))
+                        .labelsHidden()
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit(addFeed)
+                    Button(action: addFeed) {
+                        if finding { ProgressView().controlSize(.small) } else { Text(L("Add")) }
+                    }
+                    .disabled(finding || newFeed.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                if let findError {
+                    Label { Text(findError) } icon: { LucideIcon("triangle-alert", size: 12) }
+                        .font(.callout).foregroundStyle(.orange)
+                }
+            } header: {
+                SectionHeader(L("Your own feeds"), icon: "rss")
+            } footer: {
+                Text(L("Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own."))
             }
 
             let inactive = Sources.providers.filter { !s.isEnabled($0.id) }
@@ -76,6 +107,9 @@ struct SourcesTab: View {
                             }
                         }
                     }
+                    if provider.isCustom, let feed = provider.feeds.first {
+                        Text(feed.url).font(.caption).foregroundStyle(.secondary).textSelection(.enabled).lineLimit(1).truncationMode(.middle)
+                    }
                     if provider.itemLimit {
                         Stepper(value: intBinding(provider.id, \.maxItems), in: 1...10) {
                             LabeledContent(L("Maximum"), value: "\(s.source(provider.id).maxItems)")
@@ -93,6 +127,15 @@ struct SourcesTab: View {
                         .buttonStyle(.borderless)
                         .font(.caption)
                         .help(L("Its settings are kept and come back if you add it again."))
+                        if provider.isCustom {
+                            Button {
+                                store.settings.removeCustomFeed(provider.id)
+                            } label: {
+                                Label { Text(L("Delete")) } icon: { LucideIcon("trash-2", size: 12) }
+                            }
+                            .buttonStyle(.borderless)
+                            .font(.caption)
+                        }
                     }
                 }
             }
@@ -103,6 +146,29 @@ struct SourcesTab: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    /// Finds the feed behind what was pasted and adds it as a source, switched on.
+    private func addFeed() {
+        let text = newFeed
+        guard !finding, !text.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        finding = true
+        findError = nil
+        Task { @MainActor in
+            defer { finding = false }
+            do {
+                let feed = try await FeedFinder.find(text)
+                if let existing = store.settings.customFeeds.first(where: { $0.url == feed.url }) {
+                    store.settings.updateSource(existing.id) { $0.enabled = true }
+                } else {
+                    Sources.custom = store.settings.customFeeds + [feed]
+                    store.settings.customFeeds.append(feed)
+                }
+                newFeed = ""
+            } catch {
+                findError = (error as? FeedFinder.Failure ?? .unreachable).message
+            }
+        }
     }
 
     private func failed(_ feed: Provider.Feed, of provider: Provider) -> Bool {

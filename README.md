@@ -9,7 +9,15 @@ Written in Swift with AppKit, SwiftUI and Core Animation. It has no dependencies
 ## Features
 
 - **Sources:** SVT Nyheter, Sveriges Radio (Ekot), Dagens Nyheter, SCB, The New York Times,
-  BBC News and MS NOW, each with its own feeds (for example World, Sport or SVT's regional news).
+  BBC News, MS NOW and Reuters, each with its own feeds (for example World, Sport or SVT's regional news).
+  Reuters has no RSS of its own any more, so its feeds are Google News searches limited to reuters.com
+  (headlines only).
+- **Your own feeds:** paste the address of any RSS, Atom or JSON feed, or of a website that announces
+  one, and it becomes a source of its own.
+- **Fresh news first:** stories older than a chosen age are skipped. New stories, and stories that mention
+  one of your watchwords, go first with a pulsing mark. Stories the screen saver hasn't shown before come
+  before ones it has (it remembers a week).
+- **QR code:** the right-hand column shows a code to the story on the source's site, to read on your phone.
 - **Order:** take turns between sources in a pattern you choose, or show them in order.
 - **Timing:** a fixed time per story, or adapted to the length of the text.
 - **Themes:** Morning Paper, Morning Paper Photo, Night Desk, Svea, Swiss, Pastel, Matrix,
@@ -52,7 +60,7 @@ Clock Appearance… on macOS 26). Set **Show large clock** to **On Lock Screen**
 
 | Path | What it is |
 |---|---|
-| `Shared/` | Shared by the app and the screen saver: rendering (`NewsCanvas`), themes, sources and feed parsers, filters, settings, saved news |
+| `Shared/` | Shared by the app and the screen saver: rendering (`NewsCanvas`), themes, sources and feed parsers, filters, settings, saved news, shown stories (`SeenStories`) |
 | `Saver/` | The thin `ScreenSaverView` wrapper |
 | `App/` | The settings app (SwiftUI) with live preview |
 | `Resources/l10n/` | Translations, one `.lproj` per language (see its README) |
@@ -67,11 +75,12 @@ python3 tools/check-l10n.py # checks every translation against English
 ```
 
 Settings live in `~/Library/Application Support/Nyheter/`. The screen saver runs sandboxed and
-writes its own files (filter log, saved news) inside its container. The app reads both.
+writes its own files (filter log, saved news, shown stories) inside its container. The app reads both.
 
 ## Privacy
 
-Nyheter fetches the public RSS/Atom feeds of the sources you turn on, directly from those sites.
+Nyheter fetches the public RSS/Atom feeds of the sources you turn on, directly from those sites
+(for Reuters, from Google News).
 There are no accounts, analytics or servers of its own.
 
 News content and photos belong to their publishers.

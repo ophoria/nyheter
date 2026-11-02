@@ -7,7 +7,6 @@
 "Fetching…" = "Отримання…";
 "%d fetched, %d in the rotation" = "Отримано: %d, у ротації: %d";
 "Filtered by “%@”" = "Відфільтровано за «%@»";
-"Not shown: over the maximum, deselected region or duplicate" = "Не показано: понад максимум, знятий регіон або дублікат";
 "Place %d in the rotation" = "Місце %d у ротації";
 "Type word/(regex) here" = "Введіть слово/(regex) тут";
 "Type" = "Тип";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "Жодне джерело не ввімкнено.";
 "all from %@" = "усі з %@";
 "For example:" = "Наприклад:";
-"Show upcoming stories in the right column" = "Показувати наступні новини в правій колонці";
 "Show headlines only" = "Показувати лише заголовки";
 "Show the progress line at the bottom" = "Показувати смугу поступу внизу";
 "Layout" = "Макет";
@@ -236,3 +234,28 @@
 "Filter" = "Фільтр";
 "Source" = "Джерело";
 "Double-click a row to open the story." = "Двічі клацніть рядок, щоб відкрити новину.";
+
+"All stories" = "Усі новини";
+"New" = "Нове";
+"Read the whole story" = "Читати новину повністю";
+"Point your phone's camera at the code." = "Наведіть камеру телефона на код.";
+"Show a QR code to the story in the right column" = "Показувати QR-код новини в правій колонці";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Не показано: застара, понад ліміт, регіон не вибрано або дублікат";
+"Skip stories older than" = "Пропускати новини, старші за";
+"No limit" = "Без обмеження";
+"%d h" = "%d год";
+"%d min" = "%d хв";
+"Undated stories and SCB's statistics are always kept." = "Новини без дати й статистика SCB лишаються завжди.";
+"Feed or website address" = "Адреса стрічки або сайту";
+"Your own feeds" = "Власні стрічки";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Вставте адресу будь-якої стрічки RSS, Atom чи JSON або сайту, що її має. Кожна стрічка стане окремим джерелом.";
+"Delete" = "Видалити";
+"Couldn't reach that address." = "Не вдалося відкрити цю адресу.";
+"No news feed found at that address." = "За цією адресою не знайдено стрічки новин.";
+"Show new stories first, marked “New”" = "Спершу показувати нові новини з позначкою «Нове»";
+"Counts as new for" = "Вважається новою протягом";
+"Watchwords" = "Ключові слова";
+"Words, separated by commas" = "Слова через кому";
+"Show stories not seen before first" = "Спершу показувати ще не бачені новини";
+"Priority" = "Пріоритет";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Новини з ключовим словом теж ідуть першими й позначаються цим словом. Заставка пам’ятає, що показувала, протягом тижня.";

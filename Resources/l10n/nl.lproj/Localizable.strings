@@ -7,7 +7,6 @@
 "Fetching…" = "Ophalen…";
 "%d fetched, %d in the rotation" = "%d opgehaald, %d in de rotatie";
 "Filtered by “%@”" = "Gefilterd op “%@”";
-"Not shown: over the maximum, deselected region or duplicate" = "Niet getoond: boven het maximum, uitgeschakelde regio of duplicaat";
 "Place %d in the rotation" = "Plaats %d in de rotatie";
 "Type word/(regex) here" = "Typ woord/(regex) hier";
 "Type" = "Soort";
@@ -71,7 +70,6 @@
 "No sources are enabled." = "Er zijn geen bronnen ingeschakeld.";
 "all from %@" = "alle van %@";
 "For example:" = "Bijvoorbeeld:";
-"Show upcoming stories in the right column" = "Toon komende berichten in de rechterkolom";
 "Show headlines only" = "Toon alleen koppen";
 "Show the progress line at the bottom" = "Toon de voortgangslijn onderaan";
 "Layout" = "Lay-out";
@@ -236,3 +234,28 @@
 "Filter" = "Filter";
 "Source" = "Bron";
 "Double-click a row to open the story." = "Dubbelklik op een rij om het bericht te openen.";
+
+"All stories" = "Alle berichten";
+"New" = "Nieuw";
+"Read the whole story" = "Lees het hele bericht";
+"Point your phone's camera at the code." = "Richt de camera van je telefoon op de code.";
+"Show a QR code to the story in the right column" = "Toon een QR-code naar het bericht in de rechterkolom";
+"Not shown: too old, over the maximum, deselected region or duplicate" = "Niet getoond: te oud, boven het maximum, uitgezette regio of dubbel";
+"Skip stories older than" = "Berichten overslaan ouder dan";
+"No limit" = "Geen limiet";
+"%d h" = "%d u";
+"%d min" = "%d min";
+"Undated stories and SCB's statistics are always kept." = "Berichten zonder datum en de statistieken van SCB blijven altijd staan.";
+"Feed or website address" = "Adres van een feed of website";
+"Your own feeds" = "Eigen feeds";
+"Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own." = "Plak het adres van een RSS-, Atom- of JSON-feed, of van een website die er een heeft. Elke feed wordt een eigen bron.";
+"Delete" = "Verwijderen";
+"Couldn't reach that address." = "Dat adres is niet bereikbaar.";
+"No news feed found at that address." = "Geen nieuwsfeed gevonden op dat adres.";
+"Show new stories first, marked “New”" = "Nieuwe berichten eerst tonen, gemarkeerd als ‘Nieuw’";
+"Counts as new for" = "Telt als nieuw gedurende";
+"Watchwords" = "Trefwoorden";
+"Words, separated by commas" = "Woorden, gescheiden door komma’s";
+"Show stories not seen before first" = "Nog niet geziene berichten eerst tonen";
+"Priority" = "Prioriteit";
+"Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Berichten die een trefwoord noemen komen ook eerst en worden met het woord gemarkeerd. De schermbeveiliging onthoudt een week lang wat hij heeft getoond.";
