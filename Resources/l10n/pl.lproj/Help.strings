@@ -12,6 +12,14 @@
 "help.intro.body" = "Kiedy twój Mac odpoczywa, wygaszacz ekranu pokazuje najnowsze wiadomości – jedną po drugiej, duże i łatwe do czytania.\n\nW **aplikacji Nyheter** decydujesz o wszystkim: jakie wiadomości, jak długo każda zostaje, jak wygląda i co ukryć.\n\nKażda zmiana od razu pojawia się w podglądzie na górze aplikacji – i w wygaszaczu ekranu.";
 "help.start.title" = "Na start";
 "help.start.body" = "1. Kliknij **Zainstaluj wygaszacz ekranu**.\n2. Otwórz **Ustawienia systemowe › Wygaszacz ekranu** i wybierz **Nyheter**.\n3. Chcesz zobaczyć od razu? Kliknij **Pokaż na pełnym ekranie**. Naciśnij dowolny klawisz, żeby wyjść.\n\nI tyle. Wiadomości same się odświeżają.";
+"help.app.title" = "Czy mogę zamknąć aplikację?";
+"help.app.body" = "Tak. Wygaszacz działa sam: czyta twoje ustawienia, pobiera wiadomości i zapisuje je bez aplikacji. Aplikacja to tylko pilot, więc możesz ją zamknąć, gdy skończysz z ustawieniami.
+
+Otwórz aplikację ponownie, gdy chcesz:
+• **Zmienić ustawienia.** Działający wygaszacz uwzględni zmianę w ciągu kilku sekund.
+• **Uaktualnij wygaszacz ekranu** po otrzymaniu nowej wersji aplikacji.
+
+Jeśli Nyheter przestanie się pojawiać, na przykład po aktualizacji macOS, wybierz go ponownie w **Ustawienia systemowe › Wygaszacz ekranu**.";
 "help.sources.title" = "Wybierz swoje wiadomości";
 "help.sources.body" = "Przejdź do karty **Źródła**.\n\n• Kliknij **Dodaj źródło**, żeby dodać gazetę albo kanał, na przykład SVT, BBC czy The New York Times.\n• Każde źródło ma własne przełączniki, na przykład **Świat** albo **Sport**. Włącz to, co lubisz.\n• Kliknij **Usuń**, żeby zabrać źródło. Nyheter pamięta jego ustawienia, więc wrócą, gdy dodasz je ponownie.\n• Mały znak ostrzegawczy oznacza, że ten kanał teraz nie odpowiada. Zwykle samo się naprawia.\n\nWidzisz tylko opcje źródeł, których używasz.";
 "help.order.title" = "Kolejność";

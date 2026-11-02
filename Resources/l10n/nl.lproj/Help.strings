@@ -12,6 +12,14 @@
 "help.intro.body" = "Als je Mac rust, toont de schermbeveiliging het nieuwste nieuws – één bericht tegelijk, groot en makkelijk te lezen.\n\nIn de **Nyheter-app** bepaal je alles: welk nieuws, hoe lang elk bericht blijft staan, hoe het eruitziet en wat je verbergt.\n\nElke wijziging zie je meteen in de voorvertoning bovenaan de app – en in de schermbeveiliging.";
 "help.start.title" = "Aan de slag";
 "help.start.body" = "1. Klik op **Installeer de schermbeveiliging**.\n2. Open **Systeeminstellingen › Schermbeveiliging** en kies **Nyheter**.\n3. Wil je het nu zien? Klik op **Toon schermvullend**. Druk op een willekeurige toets om te stoppen.\n\nDat is alles. Het nieuws ververst vanzelf.";
+"help.app.title" = "Kan ik de app sluiten?";
+"help.app.body" = "Ja. De schermbeveiliging werkt zelfstandig: ze leest je instellingen, haalt het nieuws op en bewaart het zonder de app. De app is alleen de afstandsbediening, dus je kunt hem sluiten als je instellingen klaar zijn.
+
+Open de app weer als je wilt:
+• **Instellingen wijzigen.** Een draaiende schermbeveiliging neemt de wijziging binnen een paar seconden over.
+• **Werk de schermbeveiliging bij** nadat je een nieuwe versie van de app hebt gekregen.
+
+Verschijnt Nyheter niet meer, bijvoorbeeld na een macOS-update? Kies het dan opnieuw in **Systeeminstellingen › Schermbeveiliging**.";
 "help.sources.title" = "Kies je nieuws";
 "help.sources.body" = "Ga naar het tabblad **Bronnen**.\n\n• Klik op **Bron toevoegen** om een krant of zender toe te voegen, zoals SVT, BBC of The New York Times.\n• Elke bron heeft eigen schakelaars, bijvoorbeeld **Wereld** of **Sport**. Zet aan wat je leuk vindt.\n• Klik op **Verwijderen** om een bron weg te halen. Nyheter onthoudt de instellingen, dus ze komen terug als je de bron opnieuw toevoegt.\n• Een klein waarschuwingsteken betekent dat die feed nu niet antwoordt. Meestal lost dat zichzelf op.\n\nJe ziet alleen opties voor de bronnen die je gebruikt.";
 "help.order.title" = "Volgorde";

@@ -12,6 +12,14 @@
 "help.intro.body" = "Quando il tuo Mac riposa, il salvaschermo mostra le ultime notizie – una alla volta, grandi e facili da leggere.\n\nNell’**app Nyheter** decidi tutto: quali notizie, quanto resta ogni notizia, che aspetto ha e cosa nascondere.\n\nOgni modifica si vede subito nell’anteprima in alto nell’app – e nel salvaschermo.";
 "help.start.title" = "Per iniziare";
 "help.start.body" = "1. Fai clic su **Installa il salvaschermo**.\n2. Apri **Impostazioni di Sistema › Salvaschermo** e scegli **Nyheter**.\n3. Vuoi vederlo subito? Fai clic su **Mostra a tutto schermo**. Premi un tasto qualsiasi per uscire.\n\nFatto. Le notizie si aggiornano da sole.";
+"help.app.title" = "Posso chiudere l’app?";
+"help.app.body" = "Sì. Il salvaschermo funziona da solo: legge le tue impostazioni, scarica le notizie e le salva senza l’app. L’app è solo il telecomando, quindi puoi chiuderla quando hai finito con le impostazioni.
+
+Riapri l’app quando vuoi:
+• **Cambiare le impostazioni.** Un salvaschermo in funzione recepisce la modifica in pochi secondi.
+• **Aggiorna il salvaschermo** dopo aver ricevuto una nuova versione dell’app.
+
+Se Nyheter non compare più, per esempio dopo un aggiornamento di macOS, sceglilo di nuovo in **Impostazioni di Sistema › Salvaschermo**.";
 "help.sources.title" = "Scegli le tue notizie";
 "help.sources.body" = "Vai alla scheda **Fonti**.\n\n• Fai clic su **Aggiungi fonte** per aggiungere un giornale o un canale, come SVT, BBC o The New York Times.\n• Ogni fonte ha i suoi interruttori, per esempio **Mondo** o **Sport**. Accendi quello che ti piace.\n• Fai clic su **Rimuovi** per togliere una fonte. Nyheter ricorda le sue impostazioni, così tornano se la aggiungi di nuovo.\n• Un piccolo segnale di avviso vuol dire che quel feed adesso non risponde. Di solito si sistema da solo.\n\nVedi solo le opzioni delle fonti che usi.";
 "help.order.title" = "Ordine";

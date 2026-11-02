@@ -12,6 +12,14 @@
 "help.intro.body" = "Cuando tu Mac descansa, el salvapantallas muestra las últimas noticias: una cada vez, en grande y fácil de leer.\n\nEn la **app Nyheter** lo decides todo: qué noticias, cuánto rato se queda cada una, qué aspecto tienen y qué ocultar.\n\nCada cambio aparece al instante en la vista previa de arriba de la app, y también en el salvapantallas.";
 "help.start.title" = "Para empezar";
 "help.start.body" = "1. Haz clic en **Instalar el salvapantallas**.\n2. Abre **Ajustes del Sistema › Salvapantallas** y elige **Nyheter**.\n3. ¿Quieres verlo ya? Haz clic en **Mostrar a pantalla completa**. Pulsa cualquier tecla para salir.\n\nY ya está. Las noticias se actualizan solas.";
+"help.app.title" = "¿Puedo cerrar la app?";
+"help.app.body" = "Sí. El salvapantallas funciona por sí solo: lee tus ajustes, descarga las noticias y las guarda sin la app. La app es solo el mando a distancia, así que puedes cerrarla cuando tengas los ajustes listos.
+
+Vuelve a abrir la app cuando quieras:
+• **Cambiar ajustes.** Un salvapantallas en marcha recoge el cambio en pocos segundos.
+• **Actualizar el salvapantallas** cuando tengas una versión nueva de la app.
+
+Si Nyheter deja de aparecer, por ejemplo tras una actualización de macOS, elígelo de nuevo en **Ajustes del Sistema › Salvapantallas**.";
 "help.sources.title" = "Elige tus noticias";
 "help.sources.body" = "Ve a la pestaña **Fuentes**.\n\n• Haz clic en **Añadir fuente** para añadir un periódico o un canal, como SVT, BBC o The New York Times.\n• Cada fuente tiene sus propios interruptores, por ejemplo **Mundo** o **Deportes**. Activa lo que te guste.\n• Haz clic en **Quitar** para quitar una fuente. Nyheter recuerda sus ajustes, así que vuelven si la añades otra vez.\n• Un pequeño signo de aviso significa que esa fuente no responde ahora mismo. Suele arreglarse sola.\n\nSolo ves opciones de las fuentes que usas.";
 "help.order.title" = "Orden";

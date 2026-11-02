@@ -12,6 +12,14 @@
 "help.intro.body" = "Wenn dein Mac ruht, zeigt der Bildschirmschoner die neuesten Nachrichten – eine Meldung nach der anderen, groß und gut lesbar.\n\nIn der **Nyheter-App** bestimmst du alles: welche Nachrichten, wie lange jede Meldung bleibt, wie sie aussieht und was versteckt wird.\n\nJede Änderung siehst du sofort in der Vorschau oben in der App – und im Bildschirmschoner.";
 "help.start.title" = "Los geht’s";
 "help.start.body" = "1. Klick auf **Bildschirmschoner installieren**.\n2. Öffne **Systemeinstellungen › Bildschirmschoner** und wähle **Nyheter**.\n3. Willst du es gleich sehen? Klick auf **Im Vollbild anzeigen**. Drück eine beliebige Taste, um es zu beenden.\n\nDas war’s. Die Nachrichten aktualisieren sich von selbst.";
+"help.app.title" = "Kann ich die App schließen?";
+"help.app.body" = "Ja. Der Bildschirmschoner läuft von selbst: Er liest deine Einstellungen, holt die Nachrichten und speichert sie ohne die App. Die App ist nur die Fernbedienung, du kannst sie also schließen, wenn deine Einstellungen fertig sind.
+
+Öffne die App wieder, wenn du:
+• **Einstellungen ändern** willst. Ein laufender Bildschirmschoner übernimmt die Änderung innerhalb weniger Sekunden.
+• nach einer neuen Version der App **Bildschirmschoner aktualisieren** musst.
+
+Wenn Nyheter nicht mehr erscheint, etwa nach einem macOS-Update, wähle es erneut in **Systemeinstellungen › Bildschirmschoner**.";
 "help.sources.title" = "Wähle deine Nachrichten";
 "help.sources.body" = "Geh zum Tab **Quellen**.\n\n• Klick auf **Quelle hinzufügen**, um eine Zeitung oder einen Sender hinzuzufügen, zum Beispiel SVT, BBC oder The New York Times.\n• Jede Quelle hat eigene Schalter, zum Beispiel **Welt** oder **Sport**. Schalte ein, was dir gefällt.\n• Klick auf **Entfernen**, um eine Quelle wegzunehmen. Nyheter merkt sich ihre Einstellungen – sie kommen zurück, wenn du sie wieder hinzufügst.\n• Ein kleines Warnzeichen heißt: Dieser Feed antwortet gerade nicht. Meistens regelt sich das von selbst.\n\nDu siehst nur Optionen für die Quellen, die du nutzt.";
 "help.order.title" = "Reihenfolge";

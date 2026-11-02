@@ -12,6 +12,14 @@
 "help.intro.body" = "Saat Mac-mu beristirahat, penghemat layar menampilkan berita terbaru – satu per satu, besar dan mudah dibaca.\n\nDi **aplikasi Nyheter** kamu menentukan semuanya: berita apa, berapa lama tiap berita tampil, tampilannya, dan apa yang disembunyikan.\n\nSetiap perubahan langsung terlihat di pratinjau di bagian atas aplikasi – dan di penghemat layar.";
 "help.start.title" = "Mulai";
 "help.start.body" = "1. Klik **Instal penghemat layar**.\n2. Buka **Pengaturan Sistem › Penghemat Layar** lalu pilih **Nyheter**.\n3. Mau lihat sekarang? Klik **Tampilkan layar penuh**. Tekan tombol apa saja untuk keluar.\n\nSelesai. Beritanya diperbarui sendiri.";
+"help.app.title" = "Bolehkah aplikasinya ditutup?";
+"help.app.body" = "Boleh. Penghemat layar berjalan sendiri: ia membaca pengaturanmu, mengambil berita dan menyimpannya tanpa aplikasi. Aplikasi hanyalah remote, jadi kamu bisa menutupnya setelah pengaturan selesai.
+
+Buka aplikasi lagi saat kamu ingin:
+• **Mengubah pengaturan.** Penghemat layar yang sedang berjalan menerapkan perubahan dalam beberapa detik.
+• **Perbarui penghemat layar** setelah kamu mendapat versi baru aplikasi.
+
+Jika Nyheter tidak muncul lagi, misalnya setelah pembaruan macOS, pilih lagi di **Pengaturan Sistem › Penghemat Layar**.";
 "help.sources.title" = "Pilih beritamu";
 "help.sources.body" = "Buka tab **Sumber**.\n\n• Klik **Tambah sumber** untuk menambahkan koran atau saluran, seperti SVT, BBC, atau The New York Times.\n• Tiap sumber punya sakelarnya sendiri, misalnya **Dunia** atau **Olahraga**. Nyalakan yang kamu suka.\n• Klik **Hapus** untuk membuang sumber. Nyheter mengingat pengaturannya, jadi semuanya kembali kalau kamu menambahkannya lagi.\n• Tanda peringatan kecil berarti feed itu sedang tidak menjawab. Biasanya beres sendiri.\n\nKamu hanya melihat pilihan untuk sumber yang kamu pakai.";
 "help.order.title" = "Urutan";

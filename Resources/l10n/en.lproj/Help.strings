@@ -12,6 +12,14 @@
 "help.intro.body" = "When your Mac rests, the screen saver shows the latest news – one story at a time, big and easy to read.\n\nThe **Nyheter app** is where you decide everything: which news, how long each story stays, how it looks and what to hide.\n\nEvery change shows up right away in the preview at the top of the app – and in the screen saver.";
 "help.start.title" = "Get started";
 "help.start.body" = "1. Click **Install the screen saver**.\n2. Open **System Settings › Screen Saver** and choose **Nyheter**.\n3. Want to see it now? Click **Show full screen**. Press any key to leave.\n\nThat’s it. The news updates by itself.";
+"help.app.title" = "Can I close the app?";
+"help.app.body" = "Yes. The screen saver runs on its own: it reads your settings, fetches the news and saves it without the app. The app is only the remote control, so you can close it once your settings are done.
+
+Open the app again when you want to:
+• **Change settings.** A running screen saver picks up the change within a few seconds.
+• **Update the screen saver** after you get a new version of the app.
+
+If Nyheter stops appearing, for example after a macOS update, choose it again in **System Settings › Screen Saver**.";
 "help.sources.title" = "Choose your news";
 "help.sources.body" = "Go to the **Sources** tab.\n\n• Click **Add source** to add a newspaper or channel, like SVT, BBC or The New York Times.\n• Each source has its own switches, for example **World** or **Sport**. Turn on what you like.\n• Click **Remove** to take a source away. Nyheter remembers its settings, so they come back if you add it again.\n• A small warning sign means that feed isn’t answering right now. It usually fixes itself.\n\nYou only see options for the sources you use.";
 "help.order.title" = "Order";

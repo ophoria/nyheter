@@ -12,6 +12,14 @@
 "help.intro.body" = "När din Mac vilar visar skärmsläckaren de senaste nyheterna – en i taget, stort och lätt att läsa.\n\nI **appen Nyheter** bestämmer du allt: vilka nyheter, hur länge varje nyhet syns, hur det ser ut och vad som ska döljas.\n\nAllt du ändrar syns direkt i förhandsvisningen överst i appen – och i skärmsläckaren.";
 "help.start.title" = "Kom igång";
 "help.start.body" = "1. Klicka på **Installera skärmsläckaren**.\n2. Öppna **Systeminställningar › Skärmsläckare** och välj **Nyheter**.\n3. Vill du se den nu? Klicka på **Visa i helskärm**. Tryck på valfri tangent för att gå ur.\n\nKlart. Nyheterna uppdateras av sig själva.";
+"help.app.title" = "Kan jag stänga appen?";
+"help.app.body" = "Ja. Skärmsläckaren klarar sig själv: den läser dina inställningar, hämtar nyheterna och sparar dem utan appen. Appen är bara fjärrkontrollen, så du kan stänga den när du är klar med inställningarna.
+
+Öppna appen igen när du vill:
+• **Ändra inställningar.** En skärmsläckare som är igång märker ändringen inom några sekunder.
+• **Uppdatera skärmsläckaren** när du har fått en ny version av appen.
+
+Om Nyheter slutar visas, till exempel efter en macOS-uppdatering, välj den igen i **Systeminställningar › Skärmsläckare**.";
 "help.sources.title" = "Välj dina nyheter";
 "help.sources.body" = "Gå till fliken **Källor**.\n\n• Klicka på **Lägg till källa** för att lägga till en tidning eller kanal, till exempel SVT, BBC eller The New York Times.\n• Varje källa har egna reglage, till exempel **Världen** eller **Sport**. Slå på det du gillar.\n• Klicka på **Ta bort** för att ta bort en källa. Nyheter minns inställningarna, så de kommer tillbaka om du lägger till den igen.\n• En liten varningsskylt betyder att flödet inte svarar just nu. Det brukar lösa sig av sig självt.\n\nDu ser bara inställningar för de källor du använder.";
 "help.order.title" = "Ordning";

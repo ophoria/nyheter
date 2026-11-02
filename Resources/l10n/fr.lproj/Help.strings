@@ -12,6 +12,14 @@
 "help.intro.body" = "Quand ton Mac se repose, l’économiseur d’écran affiche les dernières infos – un article à la fois, en grand et facile à lire.\n\nC’est dans l’**app Nyheter** que tu décides de tout : quelles infos, combien de temps reste chaque article, à quoi ça ressemble et ce qu’il faut cacher.\n\nChaque changement apparaît tout de suite dans l’aperçu en haut de l’app – et dans l’économiseur d’écran.";
 "help.start.title" = "Pour commencer";
 "help.start.body" = "1. Clique sur **Installer l’économiseur d’écran**.\n2. Ouvre **Réglages Système › Économiseur d’écran** et choisis **Nyheter**.\n3. Tu veux le voir tout de suite ? Clique sur **Afficher en plein écran**. Appuie sur n’importe quelle touche pour sortir.\n\nC’est tout. Les infos se mettent à jour toutes seules.";
+"help.app.title" = "Puis-je fermer l’app ?";
+"help.app.body" = "Oui. L’économiseur d’écran fonctionne tout seul : il lit tes réglages, récupère les actualités et les enregistre sans l’app. L’app n’est que la télécommande, tu peux donc la fermer une fois tes réglages faits.
+
+Rouvre l’app quand tu veux :
+• **Changer des réglages.** Un économiseur en marche prend en compte le changement en quelques secondes.
+• **Mettre à jour l’économiseur d’écran** après avoir reçu une nouvelle version de l’app.
+
+Si Nyheter n’apparaît plus, par exemple après une mise à jour de macOS, choisis-le à nouveau dans **Réglages Système › Économiseur d’écran**.";
 "help.sources.title" = "Choisis tes infos";
 "help.sources.body" = "Va dans l’onglet **Sources**.\n\n• Clique sur **Ajouter une source** pour ajouter un journal ou une chaîne, comme SVT, BBC ou The New York Times.\n• Chaque source a ses propres interrupteurs, par exemple **Monde** ou **Sport**. Allume ce qui te plaît.\n• Clique sur **Retirer** pour enlever une source. Nyheter garde ses réglages en mémoire : ils reviennent si tu la rajoutes.\n• Un petit panneau d’alerte veut dire que ce flux ne répond pas pour l’instant. En général, ça s’arrange tout seul.\n\nTu ne vois que les options des sources que tu utilises.";
 "help.order.title" = "Ordre";
