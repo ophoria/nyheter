@@ -48,6 +48,7 @@ struct NyheterSettings: Codable, Equatable {
 
     // Layout
     var showQRCode = true          // right-hand column with a QR code to the story on the source's site
+    var showUpcoming = true        // right-hand column with the next stories (below the QR code when both are on)
     var headlineOnly = false       // hide the intro text / bullet points
     var showProgress = true        // progress line and position counter at the bottom
     var textWidth = 0              // % of the screen's width for headline and text; 0 = as wide as fits
@@ -67,6 +68,9 @@ struct NyheterSettings: Codable, Equatable {
     static let refreshChoices = [30, 60, 120, 180, 360, 720, 1440]
     static let refreshRange = 30...1440
     // Widest headline and text, in % of the screen's width: alone, and beside the QR code column.
+    /// Either part of the right-hand column is shown.
+    var showsColumn: Bool { showQRCode || showUpcoming }
+
     static let textWidthFull = 86
     static let textWidthBesideColumn = 58
     static let textWidthRange = 30...textWidthFull
@@ -182,7 +186,7 @@ struct NyheterSettings: Codable, Equatable {
               var settings = try? JSONDecoder().decode(NyheterSettings.self, from: merged)
         else { return NyheterSettings() }
         Sources.custom = settings.customFeeds
-        // The upcoming-stories column became the QR code column; keep the user's choice to hide it.
+        // For a while the upcoming-stories column was replaced by the QR code column; keep the user's choice to hide it.
         if let upcoming = saved["showUpcoming"] as? Bool, saved["showQRCode"] == nil { settings.showQRCode = upcoming }
         // Older versions offered updates every 10 or 15 minutes.
         settings.refreshMinutes = refreshChoices.first { $0 >= settings.refreshMinutes } ?? refreshRange.upperBound

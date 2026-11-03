@@ -240,6 +240,7 @@
 "Read the whole story" = "पूरी ख़बर पढ़ें";
 "Point your phone's camera at the code." = "अपने फ़ोन का कैमरा कोड की ओर करें।";
 "Show a QR code to the story in the right column" = "दाएँ कॉलम में ख़बर का QR कोड दिखाएँ";
+"Show upcoming stories in the right column" = "दाएँ कॉलम में आने वाली ख़बरें दिखाएँ";
 "Not shown: too old, over the maximum, deselected region or duplicate" = "नहीं दिखाई गई: बहुत पुरानी, सीमा से ज़्यादा, क्षेत्र नहीं चुना या दोहराई गई";
 "Skip stories older than" = "इससे पुरानी ख़बरें छोड़ें";
 "No limit" = "कोई सीमा नहीं";

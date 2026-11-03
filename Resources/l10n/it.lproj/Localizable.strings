@@ -240,6 +240,7 @@
 "Read the whole story" = "Leggi la notizia completa";
 "Point your phone's camera at the code." = "Inquadra il codice con la fotocamera del telefono.";
 "Show a QR code to the story in the right column" = "Mostra un codice QR della notizia nella colonna di destra";
+"Show upcoming stories in the right column" = "Mostra le prossime notizie nella colonna destra";
 "Not shown: too old, over the maximum, deselected region or duplicate" = "Non mostrata: troppo vecchia, oltre il massimo, regione deselezionata o duplicata";
 "Skip stories older than" = "Salta le notizie più vecchie di";
 "No limit" = "Nessun limite";

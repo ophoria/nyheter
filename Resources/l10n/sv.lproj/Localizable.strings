@@ -240,6 +240,7 @@
 "Read the whole story" = "Läs hela nyheten";
 "Point your phone's camera at the code." = "Rikta mobilens kamera mot koden.";
 "Show a QR code to the story in the right column" = "Visa en QR-kod till nyheten i högerspalten";
+"Show upcoming stories in the right column" = "Visa kommande nyheter i högerspalten";
 "Not shown: too old, over the maximum, deselected region or duplicate" = "Visas inte: för gammal, över maxantalet, bortvald region eller dubblett";
 "Skip stories older than" = "Hoppa över nyheter äldre än";
 "No limit" = "Ingen gräns";

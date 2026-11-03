@@ -240,6 +240,7 @@
 "Read the whole story" = "阅读全文";
 "Point your phone's camera at the code." = "用手机相机对准二维码。";
 "Show a QR code to the story in the right column" = "在右栏显示新闻的二维码";
+"Show upcoming stories in the right column" = "在右栏显示即将播放的新闻";
 "Not shown: too old, over the maximum, deselected region or duplicate" = "未显示：过旧、超出上限、未选地区或重复";
 "Skip stories older than" = "跳过早于此时间的新闻";
 "No limit" = "不限";

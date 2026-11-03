@@ -143,7 +143,7 @@ final class NewsCanvas: NSView {
             theme = Theme.named(new.themeID)
             laidOutSize = .zero
             relayoutIfNeeded()
-        } else if new.showQRCode != old.showQRCode || new.headlineOnly != old.headlineOnly || new.showProgress != old.showProgress
+        } else if new.showQRCode != old.showQRCode || new.showUpcoming != old.showUpcoming || new.headlineOnly != old.headlineOnly || new.showProgress != old.showProgress
                     || new.textWidth != old.textWidth || (showingCounters && (new.counterIDs != old.counterIDs || new.counters != old.counters)) {
             if showingCounters || current != nil { showSlide(animated: false) }
         }
@@ -573,10 +573,10 @@ final class NewsCanvas: NSView {
 
     // MARK: - Story slide
 
-    /// Width of the main column: narrower when the QR code column is shown.
+    /// Width of the main column: narrower when the right-hand column is shown.
     /// Wash themes keep the column's space open so the photo shows there even when the column is off.
-    private var narrow: Bool { settings.showQRCode || theme.photoWash }
-    /// The user's text width (a share of the screen's width) never reaches into the QR code column.
+    private var narrow: Bool { settings.showsColumn || theme.photoWash }
+    /// The user's text width (a share of the screen's width) never reaches into the right-hand column.
     private var mainWidth: CGFloat {
         let widest = CGFloat(narrow ? NyheterSettings.textWidthBesideColumn : NyheterSettings.textWidthFull)
         return (settings.textWidth > 0 ? min(CGFloat(settings.textWidth), widest) : widest) * vw
@@ -883,9 +883,10 @@ final class NewsCanvas: NSView {
         layer.add(group, forKey: "in")
     }
 
-    // MARK: - QR code column and footer
+    // MARK: - Right-hand column and footer
 
-    /// The right-hand column: a QR code to the story on the source's own site, to read on a phone.
+    /// The right-hand column: a QR code to the story on the source's own site, to read on a phone,
+    /// and the next stories in the rotation. Each part has its own switch.
     private func rebuildAside(animated: Bool) {
         aside.sublayers?.forEach { $0.removeFromSuperlayer() }
         let width = 26 * vu, pad = 2.2 * vu
@@ -894,7 +895,7 @@ final class NewsCanvas: NSView {
         var y: CGFloat = 0
 
         let side = 13 * vu
-        if let link, let story, let code = qrImage(link, source: story.source, pixels: side * scale) {
+        if settings.showQRCode, let link, let story, let code = qrImage(link, source: story.source, pixels: side * scale) {
             let heading = textLayer(upper(L("Read the whole story"), theme.ui.font(0.8 * vu), theme.mark(story.source), kern: 0.14), width: width - pad)
             heading.frame.origin = CGPoint(x: pad, y: y)
             aside.addSublayer(heading)
@@ -925,6 +926,33 @@ final class NewsCanvas: NSView {
             y += hint.bounds.height
         }
 
+        // Fewer of the next stories beside the QR code, so the column stays inside the content zone.
+        let count = min(y > 0 ? 3 : 5, stories.count - (current == nil ? 0 : 1))
+        let upcoming = settings.showUpcoming && count > 0 ? (0..<count).map { stories[(nextIndex + $0) % stories.count] } : []
+        if !upcoming.isEmpty, y > 0 { y += 3 * vh }
+        let inner = width - pad
+        for (k, next) in upcoming.enumerated() {
+            if k > 0 || y > 0 {
+                let rule = CALayer()
+                rule.backgroundColor = theme.rule.cgColor
+                rule.frame = CGRect(x: pad, y: y, width: inner, height: 1)
+                aside.addSublayer(rule)
+            }
+            y += 1.5 * vh
+            let label = textLayer(upper(Sources.label(next.source), theme.ui.font(0.7 * vu), theme.mark(next.source), kern: 0.14), width: 5 * vu)
+            let time = textLayer(NSAttributedString(string: clock(next.date),
+                attributes: attrs(FontSpec(family: theme.ui.family, weight: .regular).font(0.9 * vu), theme.muted)), width: 5 * vu)
+            let titleSize = 1.05 * vu
+            let title = textLayer(NSAttributedString(string: next.title,
+                attributes: attrs(FontSpec(family: theme.ui.family, weight: .regular).font(titleSize), theme.muted, lineHeight: titleSize * 1.35)),
+                width: inner - 5 * vu, maxHeight: titleSize * 1.35 * 2)
+            label.frame.origin = CGPoint(x: pad, y: y)
+            time.frame.origin = CGPoint(x: pad, y: y + label.bounds.height)
+            title.frame.origin = CGPoint(x: pad + 5 * vu, y: y)
+            [label, time, title].forEach(aside.addSublayer)
+            y += max(label.bounds.height + time.bounds.height, title.bounds.height) + 1.5 * vh
+        }
+
         let border = CALayer()
         border.backgroundColor = theme.rule.cgColor
         border.frame = CGRect(x: 0, y: 0, width: 1, height: y)
@@ -932,7 +960,7 @@ final class NewsCanvas: NSView {
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        aside.isHidden = y == 0 || !settings.showQRCode
+        aside.isHidden = y == 0
         aside.frame = CGRect(x: bounds.width - 5 * vw - width, y: (zone.lowerBound + zone.upperBound - y) / 2, width: width, height: y)
         CATransaction.commit()
         if animated {

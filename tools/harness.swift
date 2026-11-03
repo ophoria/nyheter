@@ -18,7 +18,8 @@ for id in Sources.providerIDs where !(ProcessInfo.processInfo.environment["SOURC
     settings.updateSource(id) { $0.enabled = false }
 }
 let env = ProcessInfo.processInfo.environment
-settings.showQRCode = env["NO_COLUMN"] == nil
+settings.showQRCode = env["NO_COLUMN"] == nil && env["NO_QR"] == nil
+settings.showUpcoming = env["NO_COLUMN"] == nil && env["NO_UPCOMING"] == nil
 settings.headlineOnly = env["HEADLINE_ONLY"] != nil
 settings.showProgress = env["NO_PROGRESS"] == nil
 settings.randomTheme = env["RANDOM_THEME"] != nil

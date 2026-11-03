@@ -11,6 +11,9 @@ struct ThemeTab: View {
                         Toggle(isOn: $store.settings.showQRCode) {
                             Label { Text(L("Show a QR code to the story in the right column")) } icon: { LucideIcon("panel-right") }
                         }
+                        Toggle(isOn: $store.settings.showUpcoming) {
+                            Label { Text(L("Show upcoming stories in the right column")) } icon: { LucideIcon("list-ordered") }
+                        }
                         Toggle(isOn: $store.settings.headlineOnly) {
                             Label { Text(L("Show headlines only")) } icon: { LucideIcon("heading") }
                         }
@@ -51,7 +54,7 @@ struct ThemeTab: View {
                                   marker: store.settings.themeID == theme.id ? "check" : nil, sources: sourceIDs)
                             .onTapGesture {
                                 store.settings.themeID = theme.id
-                                if theme.hidesColumn { store.settings.showQRCode = false }
+                                if theme.hidesColumn { store.settings.showQRCode = false; store.settings.showUpcoming = false }
                             }
                     }
                 }
@@ -61,10 +64,10 @@ struct ThemeTab: View {
     }
 
     /// Width of the headline and text as a share of the screen's width, up to the widest that fits
-    /// (less beside the QR code column, mirroring NewsCanvas.mainWidth). 0 means the widest.
+    /// (less beside the right-hand column, mirroring NewsCanvas.mainWidth). 0 means the widest.
     private var textWidth: some View {
         let s = store.settings
-        let beside = s.showQRCode || Theme.named(s.themeID).photoWash
+        let beside = s.showsColumn || Theme.named(s.themeID).photoWash
         let widest = beside ? NyheterSettings.textWidthBesideColumn : NyheterSettings.textWidthFull
         let width = s.textWidth > 0 ? min(s.textWidth, widest) : widest
         return VStack(alignment: .leading, spacing: 4) {

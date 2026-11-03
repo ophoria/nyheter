@@ -17,7 +17,7 @@ Written in Swift with AppKit, SwiftUI and Core Animation. It has no dependencies
 - **Fresh news first:** stories older than a chosen age are skipped. New stories, and stories that mention
   one of your watchwords, go first with a pulsing mark. Stories the screen saver hasn't shown before come
   before ones it has (it remembers a week).
-- **QR code:** the right-hand column shows a code to the story on the source's site, to read on your phone.
+- **Right-hand column:** a QR code to the story on the source's site, to read on your phone, and the next stories in line. Each can be switched off.
 - **Order:** take turns between sources in a pattern you choose, or show them in order.
 - **Timing:** a fixed time per story, or adapted to the length of the text.
 - **Themes:** Morning Paper, Morning Paper Photo, Night Desk, Svea, Swiss, Pastel, Matrix,

@@ -240,6 +240,7 @@
 "Read the whole story" = "اقرأ الخبر كاملًا";
 "Point your phone's camera at the code." = "وجّه كاميرا هاتفك نحو الرمز.";
 "Show a QR code to the story in the right column" = "عرض رمز QR للخبر في العمود الأيمن";
+"Show upcoming stories in the right column" = "عرض الأخبار التالية في العمود الأيمن";
 "Not shown: too old, over the maximum, deselected region or duplicate" = "لم يُعرض: قديم جدًا، فوق الحد الأقصى، منطقة غير مختارة أو مكرر";
 "Skip stories older than" = "تخطي الأخبار الأقدم من";
 "No limit" = "بلا حد";

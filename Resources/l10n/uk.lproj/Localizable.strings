@@ -240,6 +240,7 @@
 "Read the whole story" = "Читати новину повністю";
 "Point your phone's camera at the code." = "Наведіть камеру телефона на код.";
 "Show a QR code to the story in the right column" = "Показувати QR-код новини в правій колонці";
+"Show upcoming stories in the right column" = "Показувати наступні новини в правій колонці";
 "Not shown: too old, over the maximum, deselected region or duplicate" = "Не показано: застара, понад ліміт, регіон не вибрано або дублікат";
 "Skip stories older than" = "Пропускати новини, старші за";
 "No limit" = "Без обмеження";

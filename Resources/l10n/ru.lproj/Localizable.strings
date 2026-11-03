@@ -240,6 +240,7 @@
 "Read the whole story" = "Читать новость целиком";
 "Point your phone's camera at the code." = "Наведите камеру телефона на код.";
 "Show a QR code to the story in the right column" = "Показывать QR-код новости в правой колонке";
+"Show upcoming stories in the right column" = "Показывать следующие новости в правой колонке";
 "Not shown: too old, over the maximum, deselected region or duplicate" = "Не показано: слишком старая, сверх лимита, регион не выбран или дубликат";
 "Skip stories older than" = "Пропускать новости старше";
 "No limit" = "Без ограничения";
