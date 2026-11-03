@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "Show stories not seen before first";
 "Priority" = "Priority";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week.";
+"Width of headline and text" = "Width of headline and text";
+"Reset" = "Reset";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "Share of the screen's width. Reset goes back to %d %%, the widest that fits.";

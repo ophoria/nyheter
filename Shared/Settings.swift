@@ -50,6 +50,7 @@ struct NyheterSettings: Codable, Equatable {
     var showQRCode = true          // right-hand column with a QR code to the story on the source's site
     var headlineOnly = false       // hide the intro text / bullet points
     var showProgress = true        // progress line and position counter at the bottom
+    var textWidth = 0              // % of the screen's width for headline and text; 0 = as wide as fits
 
     // Filters
     var filters: [NewsFilter] = [NewsFilter.dateRoundups, NewsFilter.entertainment]
@@ -65,6 +66,10 @@ struct NyheterSettings: Codable, Equatable {
     static let breakingChoices = [15, 30, 60, 120, 180]
     static let refreshChoices = [30, 60, 120, 180, 360, 720, 1440]
     static let refreshRange = 30...1440
+    // Widest headline and text, in % of the screen's width: alone, and beside the QR code column.
+    static let textWidthFull = 86
+    static let textWidthBesideColumn = 58
+    static let textWidthRange = 30...textWidthFull
 
     /// A provider's settings, or its defaults if the user has never touched it.
     func source(_ id: String) -> SourceSettings {

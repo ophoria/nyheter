@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "Tampilkan berita yang belum dilihat lebih dulu";
 "Priority" = "Prioritas";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Berita yang menyebut kata pantauan juga ditampilkan lebih dulu dan ditandai dengan kata itu. Screen saver mengingat apa yang sudah ditampilkan selama seminggu.";
+"Width of headline and text" = "Lebar judul dan teks";
+"Reset" = "Atur ulang";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "Bagian dari lebar layar. Atur ulang kembali ke %d %%, selebar yang muat.";

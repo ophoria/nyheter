@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "Afficher d’abord les articles jamais vus";
 "Priority" = "Priorité";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Les articles qui mentionnent un mot surveillé passent aussi en premier, marqués de ce mot. L’économiseur d’écran se souvient de ce qu’il a affiché pendant une semaine.";
+"Width of headline and text" = "Largeur du titre et du texte";
+"Reset" = "Réinitialiser";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "Part de la largeur de l'écran. Réinitialiser revient à %d %%, la plus grande largeur possible.";

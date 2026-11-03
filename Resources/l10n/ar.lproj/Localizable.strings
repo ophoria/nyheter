@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "عرض الأخبار التي لم تُشاهد من قبل أولًا";
 "Priority" = "الأولوية";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "الأخبار التي تذكر كلمة متابعة تُعرض أولًا أيضًا وتُعلَّم بالكلمة. يتذكر حافظ الشاشة ما عرضه لمدة أسبوع.";
+"Width of headline and text" = "عرض العنوان والنص";
+"Reset" = "إعادة تعيين";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "نسبة من عرض الشاشة. تعيد إعادة التعيين القيمة إلى %d %%، أقصى عرض متاح.";

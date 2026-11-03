@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "优先显示未看过的新闻";
 "Priority" = "优先级";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "提到关注词的新闻也会优先显示，并标上该词。屏幕保护程序会记住一周内显示过的内容。";
+"Width of headline and text" = "标题和正文宽度";
+"Reset" = "重置";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "占屏幕宽度的比例。重置会恢复为 %d %%，即可容纳的最大宽度。";

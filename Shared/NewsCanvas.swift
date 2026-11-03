@@ -65,6 +65,9 @@ final class NewsCanvas: NSView {
 
     private var vw: CGFloat { bounds.width / 100 }
     private var vh: CGFloat { bounds.height / 100 }
+    /// Unit for type and spacing: 1 % of the width, but no wider than on a 16:9 screen of the same height,
+    /// so headlines on an ultrawide screen don't grow so tall that the text below them has no room.
+    private var vu: CGFloat { min(vw, vh * 16 / 9) }
     /// Keeps content below the large clock macOS draws on the lock screen.
     private var zone: ClosedRange<CGFloat> { 24 * vh...(theme.sourceTabs ? 80 : 86) * vh }
     private var scale: CGFloat { window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2 }
@@ -141,7 +144,7 @@ final class NewsCanvas: NSView {
             laidOutSize = .zero
             relayoutIfNeeded()
         } else if new.showQRCode != old.showQRCode || new.headlineOnly != old.headlineOnly || new.showProgress != old.showProgress
-                    || (showingCounters && (new.counterIDs != old.counterIDs || new.counters != old.counters)) {
+                    || new.textWidth != old.textWidth || (showingCounters && (new.counterIDs != old.counterIDs || new.counters != old.counters)) {
             if showingCounters || current != nil { showSlide(animated: false) }
         }
     }
@@ -318,7 +321,7 @@ final class NewsCanvas: NSView {
     private func showPlaceholder(_ text: String, icon: String) {
         current = nil
         showingCounters = false
-        let size = 2.4 * vw
+        let size = 2.4 * vu
         let label = textLayer(NSAttributedString(string: text, attributes: attrs(theme.headline.font(size), theme.muted)), width: 60 * vw)
         let symbol = iconLayer(icon, size: size, color: theme.muted)
         symbol.frame.origin = CGPoint(x: 0, y: (label.bounds.height - size) / 2)
@@ -415,7 +418,7 @@ final class NewsCanvas: NSView {
         bezel.sublayers?.forEach { $0.removeFromSuperlayer() }
         bezel.isHidden = !theme.bezel
         guard theme.bezel else { return }
-        let inset = 1.6 * vw, radius = 3.2 * vw
+        let inset = 1.6 * vu, radius = 3.2 * vu
         let screen = bounds.insetBy(dx: inset, dy: inset)
         let screenPath = CGPath(roundedRect: screen, cornerWidth: radius, cornerHeight: radius, transform: nil)
 
@@ -448,9 +451,9 @@ final class NewsCanvas: NSView {
         edge.path = screenPath
         edge.fillColor = nil
         edge.strokeColor = theme.text.withAlphaComponent(0.45).cgColor
-        edge.lineWidth = max(1.5, 0.12 * vw)
+        edge.lineWidth = max(1.5, 0.12 * vu)
         edge.shadowColor = theme.text.cgColor
-        edge.shadowRadius = 0.8 * vw
+        edge.shadowRadius = 0.8 * vu
         edge.shadowOpacity = 0.9
         edge.shadowOffset = .zero
 
@@ -461,13 +464,13 @@ final class NewsCanvas: NSView {
     private func rebuildSourceTabs(_ current: String) {
         sourceTabs.sublayers?.forEach { $0.removeFromSuperlayer() }
         guard theme.sourceTabs else { return }
-        let size = 1 * vw, pad = CGSize(width: 1 * vw, height: 0.55 * vh)
+        let size = 1 * vu, pad = CGSize(width: 1 * vu, height: 0.55 * vh)
         let kinds = settings.enabledProviders.map(\.id) + (countersEnabled ? ["world"] : [])
         var x: CGFloat = 0, height: CGFloat = 0
         var tabs: [CALayer] = []
         for kind in kinds {
             let active = kind == current
-            let label = textLayer(upper(Sources.label(kind), theme.ui.font(size), active ? theme.background : theme.muted, kern: 0.18), width: 20 * vw)
+            let label = textLayer(upper(Sources.label(kind), theme.ui.font(size), active ? theme.background : theme.muted, kern: 0.18), width: 20 * vu)
             let tab = CALayer()
             tab.frame = CGRect(x: x, y: 0, width: label.bounds.width + 2 * pad.width, height: label.bounds.height + 2 * pad.height)
             label.frame.origin = CGPoint(x: pad.width, y: pad.height)
@@ -480,7 +483,7 @@ final class NewsCanvas: NSView {
             }
             tabs.append(tab)
             height = tab.bounds.height
-            x += tab.bounds.width + 0.6 * vw
+            x += tab.bounds.width + 0.6 * vu
         }
         let line = CALayer()
         line.backgroundColor = theme.text.withAlphaComponent(0.5).cgColor
@@ -498,7 +501,7 @@ final class NewsCanvas: NSView {
         rain.sublayers?.forEach { $0.removeFromSuperlayer() }
         rain.isHidden = !theme.rain
         guard theme.rain, bounds.width > 0 else { return }
-        let glyph = 1.25 * vw
+        let glyph = 1.25 * vu
         let font = NSFont.monospacedSystemFont(ofSize: glyph, weight: .medium)
         let glyphs = Array("ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789Z:.=*+-<>")
         let head = NSColor(srgbRed: 0.85, green: 1, blue: 0.88, alpha: 1)
@@ -538,7 +541,7 @@ final class NewsCanvas: NSView {
     private func applyGlow(_ layer: CALayer) {
         layer.shadowColor = theme.text.cgColor
         layer.shadowOffset = .zero
-        layer.shadowRadius = 0.45 * vw
+        layer.shadowRadius = 0.45 * vu
         layer.shadowOpacity = theme.textGlow ? 0.8 : 0
     }
 
@@ -573,8 +576,12 @@ final class NewsCanvas: NSView {
     /// Width of the main column: narrower when the QR code column is shown.
     /// Wash themes keep the column's space open so the photo shows there even when the column is off.
     private var narrow: Bool { settings.showQRCode || theme.photoWash }
-    private var mainWidth: CGFloat { (narrow ? 58 : 86) * vw }
-    private var ledeWidth: CGFloat { (narrow ? 48 : 64) * vw }
+    /// The user's text width (a share of the screen's width) never reaches into the QR code column.
+    private var mainWidth: CGFloat {
+        let widest = CGFloat(narrow ? NyheterSettings.textWidthBesideColumn : NyheterSettings.textWidthFull)
+        return (settings.textWidth > 0 ? min(CGFloat(settings.textWidth), widest) : widest) * vw
+    }
+    private var ledeWidth: CGFloat { mainWidth * (narrow ? 48 / 58 : 64 / 86) }
 
     /// Builds a story slide and counts the words actually on screen (truncated text excluded).
     private func makeStory(_ story: Story, animated: Bool) -> (layer: CALayer, visibleWords: Int) {
@@ -599,7 +606,7 @@ final class NewsCanvas: NSView {
 
         // Headline, one layer per line so lines can stagger in.
         // Headline-only slides get a larger headline to fill the space.
-        let headSize = (story.title.count > 70 ? 4.1 : 5.2) * vw * theme.headlineScale * (settings.headlineOnly ? 1.25 : 1)
+        let headSize = (story.title.count > 70 ? 4.1 : 5.2) * vu * theme.headlineScale * (settings.headlineOnly ? 1.25 : 1)
         let lineHeight = headSize * theme.headlineLineHeight
         let title = theme.uppercaseHeadline ? story.title.uppercased(with: Locale(identifier: "sv_SE")) : story.title
         let headline = NSAttributedString(string: title,
@@ -631,7 +638,7 @@ final class NewsCanvas: NSView {
         let lede = CALayer()
         if !settings.headlineOnly {
             y += 4 * vh
-            let ledeSize = 1.6 * vw * theme.ledeScale, ledeLine = ledeSize * 1.45
+            let ledeSize = 1.6 * vu * theme.ledeScale, ledeLine = ledeSize * 1.45
             let ledeAttrs = attrs(theme.lede.font(ledeSize), theme.text.withAlphaComponent(theme.ledeAlpha), lineHeight: ledeLine)
             var ly: CGFloat = 0
             // Room left before the content zone ends, so long ledes never run into the footer.
@@ -640,12 +647,12 @@ final class NewsCanvas: NSView {
                 for bullet in story.body {
                     let dash = CALayer()
                     dash.backgroundColor = theme.mark(story.source).cgColor
-                    dash.frame = CGRect(x: 0, y: ly + ledeLine * 0.55, width: 0.5 * vw, height: 2)
+                    dash.frame = CGRect(x: 0, y: ly + ledeLine * 0.55, width: 0.5 * vu, height: 2)
                     let text = NSAttributedString(string: bullet, attributes: ledeAttrs)
-                    let t = textLayer(text, width: ledeWidth - 2 * vw, maxHeight: ledeLine * 2)
+                    let t = textLayer(text, width: ledeWidth - 2 * vu, maxHeight: ledeLine * 2)
                     guard ly + t.bounds.height <= room else { break }
-                    t.frame.origin = CGPoint(x: 1.4 * vw, y: ly)
-                    visible += splitLines(text, width: ledeWidth - 2 * vw).prefix(2)
+                    t.frame.origin = CGPoint(x: 1.4 * vu, y: ly)
+                    visible += splitLines(text, width: ledeWidth - 2 * vu).prefix(2)
                     lede.addSublayer(dash)
                     lede.addSublayer(t)
                     ly += t.bounds.height + 1.2 * vh
@@ -692,7 +699,7 @@ final class NewsCanvas: NSView {
         container.addSublayer(meta)
         y += meta.bounds.height + 3 * vh
 
-        let headSize = 3.6 * vw * theme.headlineScale
+        let headSize = 3.6 * vu * theme.headlineScale
         let heading = textLayer(NSAttributedString(string: theme.uppercaseHeadline ? L("The world right now").uppercased(with: L10n.locale) : L("The world right now"),
             attributes: attrs(theme.headline.font(headSize), theme.text, kern: theme.headlineKern)), width: width)
         heading.frame.origin.y = y
@@ -701,14 +708,14 @@ final class NewsCanvas: NSView {
 
         counterLayers = []
         let counters = Array(selectedCounters.prefix(8))
-        let columnWidth = 28 * vw
-        let numberSize = (counters.count > 4 ? 2.8 : 3.2) * vw
+        let columnWidth = 28 * vu
+        let numberSize = (counters.count > 4 ? 2.8 : 3.2) * vu
         let numberFont = theme.number.numberFont(numberSize)
         var rowHeight: CGFloat = 0
         var cells: [CALayer] = []
         for (k, counter) in counters.enumerated() {
             let cell = CALayer()
-            let label = textLayer(upper(L(counter.label), theme.ui.font(0.85 * vw), theme.muted, kern: 0.12), width: columnWidth - 2 * vw)
+            let label = textLayer(upper(L(counter.label), theme.ui.font(0.85 * vu), theme.muted, kern: 0.12), width: columnWidth - 2 * vu)
             let number = CATextLayer()
             number.contentsScale = scale
             number.frame = CGRect(x: 0, y: label.bounds.height + 0.8 * vh, width: columnWidth, height: numberSize * 1.25)
@@ -717,7 +724,7 @@ final class NewsCanvas: NSView {
             cell.addSublayer(number)
             let h = number.frame.maxY
             rowHeight = max(rowHeight, h)
-            cell.frame = CGRect(x: CGFloat(k % columns) * (columnWidth + 2 * vw), y: 0, width: columnWidth, height: h)
+            cell.frame = CGRect(x: CGFloat(k % columns) * (columnWidth + 2 * vu), y: 0, width: columnWidth, height: h)
             cells.append(cell)
         }
         for (k, cell) in cells.enumerated() {
@@ -731,7 +738,7 @@ final class NewsCanvas: NSView {
 
         let note = textLayer(NSAttributedString(string: L("Real-time estimates, calculated from published yearly figures:") + " "
             + Set(counters.map { L($0.source) }).sorted().joined(separator: ", ") + ".",
-            attributes: attrs(theme.ui.font(0.75 * vw), theme.muted)), width: width)
+            attributes: attrs(theme.ui.font(0.75 * vu), theme.muted)), width: width)
         note.frame.origin.y = y
         container.addSublayer(note)
         y += note.bounds.height
@@ -760,27 +767,27 @@ final class NewsCanvas: NSView {
     // MARK: - Shared slide parts
 
     private func metaRow(chip label: String, mark source: String, category: String, age: String, breaking: String? = nil) -> CALayer {
-        let size = 1 * vw
+        let size = 1 * vu
         let chip = CALayer()
-        let pad = CGSize(width: 0.7 * vw, height: 0.45 * vh)
+        let pad = CGSize(width: 0.7 * vu, height: 0.45 * vh)
         switch theme.chip {
         case .filled, .inverted:
             let filled = theme.chip == .filled
-            let chipText = textLayer(upper(label, theme.ui.font(size), filled ? theme.backdrop(source) : theme.accent(source), kern: 0.16), width: 20 * vw)
+            let chipText = textLayer(upper(label, theme.ui.font(size), filled ? theme.backdrop(source) : theme.accent(source), kern: 0.16), width: 20 * vu)
             chip.backgroundColor = (filled ? theme.accent(source) : theme.text).cgColor
             chip.frame = CGRect(x: 0, y: 0, width: chipText.bounds.width + 2 * pad.width, height: chipText.bounds.height + 2 * pad.height)
             chip.cornerRadius = chip.bounds.height * theme.chipRadius
             chipText.frame.origin = CGPoint(x: pad.width, y: pad.height)
             chip.addSublayer(chipText)
         case .highlight:
-            let chipText = textLayer(upper(label, theme.ui.font(size), theme.onHighlight, kern: 0.16), width: 20 * vw)
+            let chipText = textLayer(upper(label, theme.ui.font(size), theme.onHighlight, kern: 0.16), width: 20 * vu)
             chip.backgroundColor = theme.mark(source).cgColor
             chip.frame = CGRect(x: 0, y: 0, width: chipText.bounds.width + 2 * pad.width, height: chipText.bounds.height + 2 * pad.height)
             chip.cornerRadius = chip.bounds.height * theme.chipRadius
             chipText.frame.origin = CGPoint(x: pad.width, y: pad.height)
             chip.addSublayer(chipText)
         case .underline:
-            let chipText = textLayer(upper(label, theme.ui.font(size), theme.accent(source), kern: 0.16), width: 20 * vw)
+            let chipText = textLayer(upper(label, theme.ui.font(size), theme.accent(source), kern: 0.16), width: 20 * vu)
             let line = CALayer()
             line.backgroundColor = theme.accent(source).cgColor
             line.frame = CGRect(x: 0, y: chipText.bounds.height + pad.height, width: chipText.bounds.width, height: 2)
@@ -788,15 +795,15 @@ final class NewsCanvas: NSView {
             chip.addSublayer(chipText)
             chip.addSublayer(line)
         }
-        let categoryLayer = textLayer(upper(category, theme.ui.font(size), theme.text, kern: 0.16), width: 20 * vw)
-        let ageLayer = textLayer(upper(age, FontSpec(family: theme.ui.family, weight: .regular).font(size), theme.muted, kern: 0.16), width: 20 * vw)
+        let categoryLayer = textLayer(upper(category, theme.ui.font(size), theme.text, kern: 0.16), width: 20 * vu)
+        let ageLayer = textLayer(upper(age, FontSpec(family: theme.ui.family, weight: .regular).font(size), theme.muted, kern: 0.16), width: 20 * vu)
         let meta = CALayer()
         var x: CGFloat = 0
         let parts = [chip] + (breaking.map { [breakingTag($0, source: source, size: size)] } ?? []) + [categoryLayer, ageLayer]
         for part in parts {
             part.frame.origin = CGPoint(x: x, y: (chip.bounds.height - part.bounds.height) / 2)
             meta.addSublayer(part)
-            x += part.bounds.width + 1.2 * vw
+            x += part.bounds.width + 1.2 * vu
         }
         meta.frame = CGRect(x: 0, y: 0, width: x, height: chip.bounds.height)
         return meta
@@ -805,7 +812,7 @@ final class NewsCanvas: NSView {
     /// A pulsing dot and the reason a story counts as breaking ("New" or the watchword it mentions).
     private func breakingTag(_ text: String, source: String, size: CGFloat) -> CALayer {
         let color = theme.mark(source)
-        let label = textLayer(upper(text, theme.ui.font(size), color, kern: 0.16), width: 20 * vw)
+        let label = textLayer(upper(text, theme.ui.font(size), color, kern: 0.16), width: 20 * vu)
         let d = 0.55 * size
         let dot = CALayer()
         dot.backgroundColor = color.cgColor
@@ -832,7 +839,7 @@ final class NewsCanvas: NSView {
         let rules = CALayer()
         if let highlight = theme.highlight {
             rules.backgroundColor = highlight.cgColor
-            rules.frame = CGRect(x: 0, y: 0, width: 7 * vw, height: 1 * vh)
+            rules.frame = CGRect(x: 0, y: 0, width: 7 * vu, height: 1 * vh)
             return rules
         }
         let thick = CALayer(), thin = CALayer()
@@ -881,14 +888,14 @@ final class NewsCanvas: NSView {
     /// The right-hand column: a QR code to the story on the source's own site, to read on a phone.
     private func rebuildAside(animated: Bool) {
         aside.sublayers?.forEach { $0.removeFromSuperlayer() }
-        let width = 26 * vw, pad = 2.2 * vw
+        let width = 26 * vu, pad = 2.2 * vu
         let story = showingCounters ? nil : current.flatMap { stories.indices.contains($0) ? stories[$0] : nil }
         let link = story?.link
         var y: CGFloat = 0
 
-        let side = 13 * vw
+        let side = 13 * vu
         if let link, let story, let code = qrImage(link, source: story.source, pixels: side * scale) {
-            let heading = textLayer(upper(L("Read the whole story"), theme.ui.font(0.8 * vw), theme.mark(story.source), kern: 0.14), width: width - pad)
+            let heading = textLayer(upper(L("Read the whole story"), theme.ui.font(0.8 * vu), theme.mark(story.source), kern: 0.14), width: width - pad)
             heading.frame.origin = CGPoint(x: pad, y: y)
             aside.addSublayer(heading)
             y += heading.bounds.height + 1.6 * vh
@@ -900,18 +907,18 @@ final class NewsCanvas: NSView {
             plate.frame = CGRect(x: pad - quiet, y: y - quiet, width: side, height: side)
             plate.contents = code.image
             plate.magnificationFilter = .nearest
-            plate.cornerRadius = 0.6 * vw
+            plate.cornerRadius = 0.6 * vu
             plate.masksToBounds = true
             aside.addSublayer(plate)
             y += side - 2 * quiet + 1.6 * vh
 
             let site = textLayer(NSAttributedString(string: Self.siteName(link),
-                attributes: attrs(FontSpec(family: theme.ui.family, weight: .semibold).font(1 * vw), theme.text)), width: width - pad)
+                attributes: attrs(FontSpec(family: theme.ui.family, weight: .semibold).font(1 * vu), theme.text)), width: width - pad)
             site.frame.origin = CGPoint(x: pad, y: y)
             aside.addSublayer(site)
             y += site.bounds.height + 0.6 * vh
             let hint = textLayer(NSAttributedString(string: L("Point your phone's camera at the code."),
-                attributes: attrs(FontSpec(family: theme.ui.family, weight: .regular).font(0.85 * vw), theme.muted, lineHeight: 1.2 * vw)),
+                attributes: attrs(FontSpec(family: theme.ui.family, weight: .regular).font(0.85 * vu), theme.muted, lineHeight: 1.2 * vu)),
                 width: side)
             hint.frame.origin = CGPoint(x: pad, y: y)
             aside.addSublayer(hint)
@@ -982,14 +989,14 @@ final class NewsCanvas: NSView {
         footer.sublayers?.forEach { $0.removeFromSuperlayer() }
         let width = bounds.width - 10 * vw
         let position = showingCounters ? "" : current.map { "\($0 + 1) / \(stories.count)" } ?? ""
-        let count = textLayer(upper(position, theme.ui.font(0.8 * vw), theme.muted, kern: 0.12), width: 10 * vw)
+        let count = textLayer(upper(position, theme.ui.font(0.8 * vu), theme.muted, kern: 0.12), width: 10 * vu)
         let height = max(count.bounds.height, 2)
         count.frame.origin = CGPoint(x: width - count.bounds.width, y: 0)
         footer.addSublayer(count)
 
         let track = CALayer()
         track.backgroundColor = theme.rule.cgColor
-        let trackWidth = position.isEmpty ? width : count.frame.minX - 2 * vw
+        let trackWidth = position.isEmpty ? width : count.frame.minX - 2 * vu
         track.frame = CGRect(x: 0, y: height / 2 - 1, width: max(0, trackWidth), height: 2)
         footer.addSublayer(track)
 

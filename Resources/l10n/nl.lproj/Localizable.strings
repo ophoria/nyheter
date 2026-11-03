@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "Nog niet geziene berichten eerst tonen";
 "Priority" = "Prioriteit";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Berichten die een trefwoord noemen komen ook eerst en worden met het woord gemarkeerd. De schermbeveiliging onthoudt een week lang wat hij heeft getoond.";
+"Width of headline and text" = "Breedte van kop en tekst";
+"Reset" = "Herstel";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "Deel van de schermbreedte. Herstel zet het terug op %d %%, het breedste dat past.";

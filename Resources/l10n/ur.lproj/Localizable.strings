@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "پہلے نہ دیکھی گئی خبریں پہلے دکھائیں";
 "Priority" = "ترجیح";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "نگرانی کے لفظ والی خبریں بھی پہلے آتی ہیں اور اس لفظ سے نشان زد ہوتی ہیں۔ اسکرین سیور ایک ہفتے تک یاد رکھتا ہے کہ اس نے کیا دکھایا۔";
+"Width of headline and text" = "سرخی اور متن کی چوڑائی";
+"Reset" = "ری سیٹ کریں";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "اسکرین کی چوڑائی کا حصہ۔ ری سیٹ %d %% پر واپس لاتا ہے، جو سب سے زیادہ چوڑائی ہے جو سما سکے۔";

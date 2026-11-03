@@ -17,6 +17,7 @@ struct ThemeTab: View {
                         Toggle(isOn: $store.settings.showProgress) {
                             Label { Text(L("Show the progress line at the bottom")) } icon: { LucideIcon("gauge") }
                         }
+                        textWidth
                     }
                     .toggleStyle(.switch)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -56,6 +57,27 @@ struct ThemeTab: View {
                 }
             }
             .padding(4)
+        }
+    }
+
+    /// Width of the headline and text as a share of the screen's width, up to the widest that fits
+    /// (less beside the QR code column, mirroring NewsCanvas.mainWidth). 0 means the widest.
+    private var textWidth: some View {
+        let s = store.settings
+        let beside = s.showQRCode || Theme.named(s.themeID).photoWash
+        let widest = beside ? NyheterSettings.textWidthBesideColumn : NyheterSettings.textWidthFull
+        let width = s.textWidth > 0 ? min(s.textWidth, widest) : widest
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Label { Text(L("Width of headline and text")) } icon: { LucideIcon("maximize-2") }
+                Slider(value: Binding(get: { Double(width) }, set: { store.settings.textWidth = Int($0.rounded()) }),
+                       in: Double(NyheterSettings.textWidthRange.lowerBound)...Double(widest), step: 1)
+                Text("\(width) %").monospacedDigit().frame(width: 44, alignment: .trailing)
+                Button(L("Reset")) { store.settings.textWidth = 0 }
+                    .disabled(s.textWidth == 0)
+            }
+            Text(L("Share of the screen's width. Reset goes back to %d %%, the widest that fits.", widest))
+                .font(.callout).foregroundStyle(.secondary)
         }
     }
 

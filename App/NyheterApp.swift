@@ -70,7 +70,8 @@ struct ContentView: View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 18) {
                 LivePreview(settings: store.settings, log: log)
-                    .aspectRatio(16 / 9, contentMode: .fit)
+                    // The shape of this Mac's screen, so an ultrawide layout previews as it will look.
+                    .aspectRatio(NSScreen.main.map { $0.frame.width / $0.frame.height } ?? 16 / 9, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.quaternary))
                     .shadow(color: .black.opacity(0.25), radius: 14, y: 6)

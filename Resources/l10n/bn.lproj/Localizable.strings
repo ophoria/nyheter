@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "আগে না দেখা খবর আগে দেখান";
 "Priority" = "অগ্রাধিকার";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "নজরের শব্দ থাকা খবরও আগে আসে এবং সেই শব্দ দিয়ে চিহ্নিত হয়। স্ক্রিন সেভার এক সপ্তাহ মনে রাখে কী দেখিয়েছে।";
+"Width of headline and text" = "শিরোনাম ও লেখার প্রস্থ";
+"Reset" = "রিসেট করুন";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "স্ক্রিনের প্রস্থের অংশ। রিসেট করলে %d %%-এ ফিরে যায়, যতটা চওড়া আঁটে।";

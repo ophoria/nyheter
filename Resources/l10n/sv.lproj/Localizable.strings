@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "Visa nyheter du inte sett förut först";
 "Priority" = "Prioritet";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Nyheter som nämner ett bevakningsord visas också först och märks med ordet. Skärmsläckaren minns vad den har visat i en vecka.";
+"Width of headline and text" = "Bredd på rubrik och text";
+"Reset" = "Återställ";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "Andel av skärmens bredd. Återställ går tillbaka till %d %%, det bredaste som får plats.";

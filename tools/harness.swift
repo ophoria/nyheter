@@ -26,7 +26,10 @@ settings.language = env["NYHETER_LANG"]
 // WATCHWORDS=a,b marks matching stories as breaking (to check the tag).
 settings.watchwords = (env["WATCHWORDS"] ?? "").split(separator: ",").map(String.init)
 
-let frame = NSRect(x: 0, y: 0, width: 1920, height: 1080)
+// SIZE=5120x1440 renders another screen size (an ultrawide, say); TEXT_WIDTH=50 sets the text width in %.
+let size = (env["SIZE"] ?? "1920x1080").split(separator: "x").compactMap { Double($0) }
+settings.textWidth = Int(env["TEXT_WIDTH"] ?? "") ?? 0
+let frame = NSRect(x: 0, y: 0, width: size[0], height: size[1])
 let window = NSWindow(contentRect: frame, styleMask: .borderless, backing: .buffered, defer: false)
 let canvas = NewsCanvas(frame: frame, settings: settings)
 window.contentView = canvas

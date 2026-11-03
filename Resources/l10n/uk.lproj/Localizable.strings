@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "Спершу показувати ще не бачені новини";
 "Priority" = "Пріоритет";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Новини з ключовим словом теж ідуть першими й позначаються цим словом. Заставка пам’ятає, що показувала, протягом тижня.";
+"Width of headline and text" = "Ширина заголовка й тексту";
+"Reset" = "Скинути";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "Частка ширини екрана. «Скинути» повертає %d %% — найбільше, що вміщується.";

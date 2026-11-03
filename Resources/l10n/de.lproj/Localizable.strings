@@ -259,3 +259,6 @@
 "Show stories not seen before first" = "Noch nicht gesehene Meldungen zuerst zeigen";
 "Priority" = "Priorität";
 "Stories mentioning a watchword are also shown first and marked with the word. The screen saver remembers what it has shown for a week." = "Meldungen, die ein Stichwort nennen, kommen ebenfalls zuerst und werden mit dem Wort markiert. Der Bildschirmschoner merkt sich eine Woche lang, was er gezeigt hat.";
+"Width of headline and text" = "Breite von Schlagzeile und Text";
+"Reset" = "Zurücksetzen";
+"Share of the screen's width. Reset goes back to %d %%, the widest that fits." = "Anteil an der Bildschirmbreite. Zurücksetzen stellt %d %% wieder her, die größte passende Breite.";
