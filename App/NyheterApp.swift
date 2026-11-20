@@ -2,20 +2,32 @@ import SwiftUI
 
 @main
 struct NyheterApp: App {
-    @StateObject private var store = SettingsStore()
-    @StateObject private var log = FetchLog()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    @StateObject private var store = SettingsStore.shared
+    @StateObject private var log = FetchLog.shared
 
     var body: some Scene {
-        WindowGroup("Nyheter") {
+        WindowGroup("Nyheter", id: "main") {
             ContentView()
                 .environmentObject(store)
                 .environmentObject(log)
                 .frame(minWidth: 1140, minHeight: 700)
         }
         .windowResizability(.contentMinSize)
+        // nyheter:// addresses go to the app delegate, not to a new window.
+        .handlesExternalEvents(matching: [])
         .commands {
             CommandGroup(replacing: .help) { HelpButton(label: false).keyboardShortcut("?", modifiers: .command) }
+            CommandGroup(after: .windowArrangement) { HistoryCommand() }
         }
+
+        // What the screen saver showed: "What was that story?"
+        Window(L("History"), id: HistoryView.windowID) {
+            HistoryView().environmentObject(store)
+        }
+        .defaultSize(HistoryView.defaultSize)
+        .handlesExternalEvents(matching: [])
+
 
         // The filter log in a large window, nearly filling the screen.
         Window(L("Filter log"), id: LogBrowser.windowID) {
@@ -25,17 +37,31 @@ struct NyheterApp: App {
         }
         .defaultSize(LogBrowser.defaultSize)
         .defaultPosition(.center)
+        .handlesExternalEvents(matching: [])
 
         Window(L10n.help("help.title"), id: HelpView.windowID) {
             HelpView().environmentObject(store)
         }
         .defaultSize(width: 1040, height: 780)
         .defaultPosition(.center)
+        .handlesExternalEvents(matching: [])
     }
 }
 
-/// Holds the settings and saves every change straight to the shared file.
+/// Window › History (⌘Y).
+struct HistoryCommand: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button(L("History")) { openWindow(id: HistoryView.windowID) }
+            .keyboardShortcut("y", modifiers: .command)
+    }
+}
+
+/// Holds the settings and saves every change straight to the shared file (and to the active profile).
 final class SettingsStore: ObservableObject {
+    static let shared = SettingsStore()
+
     @Published var settings: NyheterSettings {
         didSet {
             // Keep the order lists in step with the sources in use. Reassigning re-runs this
@@ -45,11 +71,34 @@ final class SettingsStore: ObservableObject {
             if normalized != settings { settings = normalized; return }
             Sources.custom = settings.customFeeds
             L10n.override = Self.debugLanguage ?? settings.language
-            if settings != oldValue { settings.save() }
+            if settings.menuBarHistory != oldValue.menuBarHistory { StatusMenu.shared.show(settings.menuBarHistory) }
+            if settings != oldValue {
+                settings.save()
+                if let profile = settings.activeProfile, Profiles.exists(profile) { Profiles.save(settings, as: profile) }
+            }
         }
     }
 
-    init() {
+    /// Switches to a saved profile, keeping this Mac's language.
+    func switchProfile(_ name: String) {
+        guard var loaded = Profiles.load(name) else { return }
+        loaded.language = settings.language
+        loaded.logClearedAt = settings.logClearedAt
+        loaded.activeProfile = name
+        loaded.includeActiveSources()
+        settings = loaded
+    }
+
+    /// Adds a .nyheter file as a profile (named after the file) and switches to it.
+    func importProfile(from url: URL) {
+        guard let imported = Profiles.load(from: url) else { return }
+        let name = Profiles.unique(url.deletingPathExtension().lastPathComponent)
+        Profiles.save(imported, as: name)
+        switchProfile(name)
+        NotificationCenter.default.post(name: .profilesChanged, object: nil)
+    }
+
+    private init() {
         var loaded = NyheterSettings.load()
         loaded.includeActiveSources()
         settings = loaded
@@ -76,11 +125,17 @@ struct ContentView: View {
                     .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(.quaternary))
                     .shadow(color: .black.opacity(0.25), radius: 14, y: 6)
                 InstallBar()
-                HStack {
+                HStack(spacing: 18) {
                     LanguagePicker()
                     Spacer()
+                    Button { openWindow(id: HistoryView.windowID) } label: {
+                        Label { Text(L("History")) } icon: { LucideIcon("history") }
+                    }
+                    .controlSize(.large)
+                    .help(L("Every story the screen saver showed in the last week"))
                     HelpButton().controlSize(.large)
                 }
+                ProfileMenu()
                 Spacer(minLength: 0)
             }
             .padding(24)
@@ -102,7 +157,17 @@ struct ContentView: View {
         }
         .environment(\.layoutDirection, L10n.current.rightToLeft ? .rightToLeft : .leftToRight)
         .environment(\.locale, L10n.locale)
-        .onAppear(perform: snapshotIfRequested)
+        .onAppear {
+            // Lets the menu bar item open windows after this one is closed.
+            StatusMenu.shared.openWindow = { [openWindow] id in openWindow(id: id) }
+            snapshotIfRequested()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openNyheterWindow)) { note in
+            if let id = note.object as? String {
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: id)
+            }
+        }
     }
 
     /// Debug aid: NYHETER_SNAPSHOT=<file.png> renders the window to a PNG and quits.
@@ -113,11 +178,16 @@ struct ContentView: View {
         // NYHETER_SNAPSHOT_HELP=1 snapshots the help window instead.
         let logWindow = ProcessInfo.processInfo.environment["NYHETER_SNAPSHOT_LOG"] != nil
         let helpWindow = ProcessInfo.processInfo.environment["NYHETER_SNAPSHOT_HELP"] != nil
+        // NYHETER_SNAPSHOT_HISTORY=1 snapshots the History window instead.
+        let historyWindow = ProcessInfo.processInfo.environment["NYHETER_SNAPSHOT_HISTORY"] != nil
         if logWindow { openWindow(id: LogBrowser.windowID) }
+        if historyWindow { openWindow(id: HistoryView.windowID) }
         if helpWindow { openWindow(id: HelpView.windowID) }
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
-            let window = logWindow ? NSApp.windows.first { $0.title == L("Filter log") }
-                : helpWindow ? NSApp.windows.first { $0.title == L10n.help("help.title") } : NSApp.windows.first
+            let window = historyWindow ? NSApp.windows.first { $0.title == L("History") }
+                : logWindow ? NSApp.windows.first { $0.title == L("Filter log") }
+                : helpWindow ? NSApp.windows.first { $0.title == L10n.help("help.title") }
+                : NSApp.windows.first { $0.title == "Nyheter" } ?? NSApp.windows.first
             guard let view = window?.contentView,
                   let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
             view.cacheDisplay(in: view.bounds, to: rep)

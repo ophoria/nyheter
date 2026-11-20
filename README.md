@@ -26,6 +26,19 @@ Written in Swift with AppKit, SwiftUI and Core Animation. It has no dependencies
   log shows what was filtered and why.
 - **The world right now:** every few stories, optional live counters (world population, births
   and deaths today, CO₂ emissions and more), estimated from published yearly figures.
+- **Breaking news:** when several sources (4 by default) report the same story within a short time
+  (30 minutes by default), it fills the screen with every source's report time.
+- **Here and now:** an optional card with the weather for up to three places (SMHI), SMHI warnings for
+  their counties, today's electricity spot price, the Riksbank policy rate and SCB inflation. All of these
+  are open services that need no account or key.
+- **On this day:** an optional card of events from Wikipedia's "On this day" list. You choose the
+  Wikipedia language, from the languages that publish the list.
+- **History:** a searchable window with every story the screen saver showed in the last week. The
+  latest stories are also in an optional menu bar item.
+- **Feed health:** the Sources tab marks each feed as working, quiet, failing or broken.
+- **Profiles:** named sets of settings that can be switched, imported and exported (`.nyheter` files).
+  `nyheter://` links (`profile/<name>`, `refresh`, `history`, `preview`, `filter?word=`,
+  `watchword?word=`) work from Shortcuts' "Open URLs" action or from `open` in the Terminal.
 - **Offline-friendly:** the last fetch is saved. A new start shows it at once and only fetches
   again when it is older than the refresh interval. Stories appear as each feed answers.
 - **17 languages** for the interface, following the macOS language or chosen in the app.

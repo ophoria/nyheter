@@ -7,13 +7,20 @@ final class FetchLog: ObservableObject {
     @Published private(set) var blockedBy: [String: String] = [:]   // headline → filter pattern
     @Published private(set) var fetchedAt: Date?
     @Published private(set) var failedFeeds: Set<String> = []
+    /// How every feed did lately, in the app's preview and in the screen saver.
+    @Published private(set) var health: [String: FeedStatus] = FeedHealth.statuses()
     var refresh: (() -> Void)?
+
+    static let shared = FetchLog()
+
+    func reloadHealth() { health = FeedHealth.statuses() }
 
     /// Keyed by headline, so a story counts as shown even when its copy from another feed was the one kept.
     static func key(_ story: Story) -> String { story.title }
 
     func update(fetched: [Story], rotation: [Story], hits: [Filters.Hit], failed: Set<String>, at date: Date) {
         failedFeeds = failed
+        health = FeedHealth.statuses()
         self.fetched = fetched
         blockedBy = Dictionary(hits.map { ($0.story.title, $0.filter.pattern) }) { first, _ in first }
         positions = Dictionary(rotation.enumerated().map { (Self.key($0.element), $0.offset + 1) }) { first, _ in first }

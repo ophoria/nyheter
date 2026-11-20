@@ -72,7 +72,23 @@ universal $APP/Contents/MacOS/Nyheter -parse-as-library -module-name NyheterApp 
 plist $APP/Contents/Info.plist local.nyheter.app Nyheter Nyheter APPL \
   "<key>CFBundleIconFile</key><string>AppIcon</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.news</string>
-  <key>NSHighResolutionCapable</key><true/>"
+  <key>NSHighResolutionCapable</key><true/>
+  <key>CFBundleURLTypes</key><array><dict>
+    <key>CFBundleURLName</key><string>local.nyheter.app</string>
+    <key>CFBundleURLSchemes</key><array><string>nyheter</string></array>
+  </dict></array>
+  <key>UTExportedTypeDeclarations</key><array><dict>
+    <key>UTTypeIdentifier</key><string>local.nyheter.profile</string>
+    <key>UTTypeDescription</key><string>Nyheter profile</string>
+    <key>UTTypeConformsTo</key><array><string>public.json</string></array>
+    <key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>nyheter</string></array></dict>
+  </dict></array>
+  <key>CFBundleDocumentTypes</key><array><dict>
+    <key>CFBundleTypeName</key><string>Nyheter profile</string>
+    <key>CFBundleTypeRole</key><string>Viewer</string>
+    <key>LSHandlerRank</key><string>Owner</string>
+    <key>LSItemContentTypes</key><array><string>local.nyheter.profile</string></array>
+  </dict></array>"
 
 echo "› Icon"
 swiftc -O tools/make-icon.swift -o $OUT/tmp/make-icon

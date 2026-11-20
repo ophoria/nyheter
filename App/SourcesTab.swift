@@ -51,6 +51,29 @@ struct SourcesTab: View {
                 Text(L("Paste the address of any RSS, Atom or JSON feed, or of a website that has one. Each feed becomes a source of its own."))
             }
 
+            let problems = feedProblems(s)
+            if !problems.isEmpty || !log.health.isEmpty {
+                Section {
+                    if problems.isEmpty {
+                        Label { Text(L("All feeds in use are working.")) } icon: { LucideIcon("circle-check").foregroundStyle(.green) }
+                    }
+                    ForEach(problems, id: \.feed) { problem in
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            HealthDot(state: problem.status.state(feed: problem.feed))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(Sources.feedName(problem.feed))
+                                Text(HealthBadge.describe(problem.status, feed: problem.feed)).font(.caption).foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                } header: {
+                    SectionHeader(L("Feed health"), icon: "activity")
+                } footer: {
+                    Text(L("Checked at every update, by the screen saver and by the preview here. Hover over a dot for details."))
+                }
+            }
+
             let inactive = Sources.providers.filter { !s.isEnabled($0.id) }
             if !inactive.isEmpty {
                 Section {
@@ -83,9 +106,8 @@ struct SourcesTab: View {
                         Toggle(isOn: feedBinding(provider, feed)) {
                             HStack(spacing: 6) {
                                 Text(L(feed.name))
-                                if failed(feed, of: provider) {
-                                    LucideIcon("triangle-alert", size: 12).foregroundStyle(.orange)
-                                    Text(L("Not responding right now")).font(.caption).foregroundStyle(.secondary)
+                                if s.isOn(feed, of: provider), let health = health(feed, of: provider) {
+                                    HealthBadge(feeds: health)
                                 }
                             }
                         }
@@ -171,11 +193,19 @@ struct SourcesTab: View {
         }
     }
 
-    private func failed(_ feed: Provider.Feed, of provider: Provider) -> Bool {
-        if feed.id == Sources.svtLocalFeed {
-            return store.settings.source(provider.id).regions.contains { log.failedFeeds.contains("svt-\($0)") }
-        }
-        return store.settings.isOn(feed, of: provider) && log.failedFeeds.contains(feed.id)
+    /// Health of a feed as fetched: SVT's local news is one fetch per chosen region.
+    private func health(_ feed: Provider.Feed, of provider: Provider) -> [(feed: String, status: FeedStatus)]? {
+        let ids = feed.id == Sources.svtLocalFeed ? store.settings.source(provider.id).regions.map { "svt-\($0)" } : [feed.id]
+        let found = ids.compactMap { id in log.health[id].map { (feed: id, status: $0) } }
+        return found.isEmpty ? nil : found
+    }
+
+    /// Feeds in use that need attention, worst first.
+    private func feedProblems(_ s: NyheterSettings) -> [(feed: String, status: FeedStatus)] {
+        let rank: [FeedStatus.State: Int] = [.broken: 0, .failing: 1, .quiet: 2]
+        return Sources.requests(for: s).compactMap { request in
+            log.health[request.feed].flatMap { status in status.state(feed: request.feed) == .ok ? nil : (feed: request.feed, status: status) }
+        }.sorted { rank[$0.status.state(feed: $0.feed)]! < rank[$1.status.state(feed: $1.feed)]! }
     }
 
     /// Inactive providers grouped by language, named in the app's language ("Swedish", "English" …).
@@ -211,5 +241,79 @@ struct SourcesTab: View {
     private func regionSummary(_ slugs: [String]) -> String {
         let names = Sources.svtRegions.filter { slugs.contains($0.slug) }.map(\.name)
         return names.count > 3 ? L("%d selected", names.count) : names.joined(separator: ", ")
+    }
+}
+
+/// A coloured dot for a feed's health.
+struct HealthDot: View {
+    let state: FeedStatus.State
+
+    var body: some View {
+        Circle().fill(color).frame(width: 8, height: 8)
+    }
+
+    private var color: Color {
+        switch state {
+        case .ok: return .green
+        case .quiet: return .yellow
+        case .failing: return .orange
+        case .broken: return .red
+        }
+    }
+}
+
+/// The worst health among a feed's fetches: a dot, a word when something is wrong, details on hover.
+struct HealthBadge: View {
+    let feeds: [(feed: String, status: FeedStatus)]
+
+    var body: some View {
+        let worst = feeds.max { severity($0) < severity($1) }!
+        let state = worst.status.state(feed: worst.feed)
+        HStack(spacing: 4) {
+            HealthDot(state: state)
+            if state != .ok {
+                Text(Self.title(state)).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .help(feeds.map { (feeds.count > 1 ? Sources.feedName($0.feed) + ": " : "") + Self.describe($0.status, feed: $0.feed) }.joined(separator: "\n"))
+    }
+
+    private func severity(_ item: (feed: String, status: FeedStatus)) -> Int {
+        [.ok: 0, .quiet: 1, .failing: 2, .broken: 3][item.status.state(feed: item.feed)] ?? 0
+    }
+
+    static func title(_ state: FeedStatus.State) -> String {
+        switch state {
+        case .ok: return L("Working")
+        case .quiet: return L("Quiet")
+        case .failing: return L("Not responding")
+        case .broken: return L("Broken")
+        }
+    }
+
+    /// A sentence about the feed's last fetch, e.g. "25 stories, the newest 8 min old. Checked 14:02."
+    static func describe(_ status: FeedStatus, feed: String) -> String {
+        let checked = L("Checked %@.", time(status.lastTry))
+        switch status.state(feed: feed) {
+        case .ok, .quiet:
+            let newest = status.newest.map { L("the newest from %@", time($0)) }
+            let first = L("%d stories", status.stories) + (newest.map { ", " + $0 } ?? "") + "."
+            let quiet = status.state(feed: feed) == .quiet ? " " + L("Nothing new for days: the feed may have been abandoned.") : ""
+            return first + quiet + " " + checked
+        case .failing:
+            let since = status.lastOK.map { L("Last worked %@.", time($0)) } ?? ""
+            let why = status.problem == .http ? L("The site answers with error %d.", status.code ?? 0)
+                : status.problem == .empty ? L("The answer holds no stories.") : L("No answer.")
+            return [why, since, checked].filter { !$0.isEmpty }.joined(separator: " ")
+        case .broken:
+            let why = status.problem == .http ? L("The site answers with error %d.", status.code ?? 0) : L("The answer holds no stories.")
+            return why + " " + L("The feed may have moved or changed format: check its address.") + " " + checked
+        }
+    }
+
+    private static func time(_ date: Date) -> String {
+        Calendar.current.isDateInToday(date)
+            ? date.formatted(.dateTime.locale(L10n.locale).hour(.twoDigits(amPM: .omitted)).minute(.twoDigits))
+            : date.formatted(.dateTime.locale(L10n.locale).day().month(.abbreviated).hour(.twoDigits(amPM: .omitted)).minute(.twoDigits))
     }
 }

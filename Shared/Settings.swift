@@ -28,11 +28,36 @@ struct NyheterSettings: Codable, Equatable {
     var watchwords: [String] = []                      // a story mentioning one of these counts as breaking
     var unseenFirst = true                             // stories not shown in earlier runs come before seen ones
 
+    // Breaking takeover: a story enough sources report within a short time fills the screen.
+    var takeover = true
+    var takeoverSources = 4                            // different sources needed
+    var takeoverMinutes = 30                           // between the first report and the last one needed
+
     // World counters
     var counters = true
     var counterEvery = 6
     var counterSeconds: Double = 15
     var counterIDs: [String] = WorldCounter.defaultIDs
+
+    // "Here and now": weather, warnings, electricity price, policy rate and inflation for chosen places in Sweden
+    var localCard = false
+    var localEvery = 8
+    var localSeconds: Double = 15
+    var places: [LocalPlace] = [LocalPlace.presets.first { $0.name == "Stockholm" }!]
+    var priceArea: String?                             // nil = the first place's
+    var localParts: [String] = HereAndNow.partIDs
+
+    // "On this day", from Wikipedia
+    var onThisDay = false
+    var onThisDayEvery = 10
+    var onThisDaySeconds: Double = 20
+    var onThisDayLanguage: String?                     // nil = the app's language if that Wikipedia has the list, else English
+
+    // History
+    var menuBarHistory = true                          // recent stories in the menu bar (app only)
+
+    // Profiles (app only): the named profile these settings are also saved to
+    var activeProfile: String?
 
     // Order
     var orderMode = OrderMode.turns
@@ -63,6 +88,8 @@ struct NyheterSettings: Codable, Equatable {
     }
 
     static let maxStories = 100
+    static let maxPlaces = 3
+    static let takeoverMinuteChoices = [15, 30, 60, 120]
     static let maxAgeChoices = [0, 3, 6, 12, 24, 48, 72]
     static let breakingChoices = [15, 30, 60, 120, 180]
     static let refreshChoices = [30, 60, 120, 180, 360, 720, 1440]
@@ -127,7 +154,7 @@ struct NyheterSettings: Codable, Equatable {
     /// Signature of everything that only changes how fetched stories are picked and ordered.
     var orderSignature: String {
         "\(sources)\(orderMode)\(turnPattern)\(blockOrder)\(maxPerSource)\(filters)\(blockedSections)"
-            + "\(maxAgeHours)\(breakingFirst)\(breakingMinutes)\(watchwords)\(unseenFirst)"
+            + "\(maxAgeHours)\(breakingFirst)\(breakingMinutes)\(watchwords)\(unseenFirst)\(takeover)\(takeoverSources)\(takeoverMinutes)"
     }
 
     /// Older than the age limit. Undated stories are kept, and so are sources with few, slow-moving
@@ -177,14 +204,18 @@ struct NyheterSettings: Codable, Equatable {
 
     /// Loads saved settings, filling any keys missing from older files with defaults.
     static func load() -> NyheterSettings {
-        guard let data = try? Data(contentsOf: fileURL),
-              var saved = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        (try? Data(contentsOf: fileURL)).flatMap(decode) ?? NyheterSettings()
+    }
+
+    /// Settings from a settings file or a profile, with defaults for keys it lacks; nil if it isn't one.
+    static func decode(_ data: Data) -> NyheterSettings? {
+        guard var saved = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let defaults = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(NyheterSettings())) as? [String: Any]
         else { return NyheterSettings() }
         if saved["sources"] == nil { saved["sources"] = migratedSources(saved) }
         guard let merged = try? JSONSerialization.data(withJSONObject: defaults.merging(saved) { _, new in new }),
               var settings = try? JSONDecoder().decode(NyheterSettings.self, from: merged)
-        else { return NyheterSettings() }
+        else { return nil }
         Sources.custom = settings.customFeeds
         // For a while the upcoming-stories column was replaced by the QR code column; keep the user's choice to hide it.
         if let upcoming = saved["showUpcoming"] as? Bool, saved["showQRCode"] == nil { settings.showQRCode = upcoming }
@@ -217,8 +248,9 @@ struct NyheterSettings: Codable, Equatable {
         ]
     }
 
-    func save() {
-        let url = Self.fileURL
+    func save() { save(to: Self.fileURL) }
+
+    func save(to url: URL) {
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]

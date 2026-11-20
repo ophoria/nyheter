@@ -46,8 +46,23 @@ final class NewsCanvas: NSView {
     private var stories: [Story] = []
     private var current: Int?             // index of the story on screen
     private var nextIndex = 0
-    private var showingCounters = false
-    private var sinceCounters = 0
+    /// The card slide on screen instead of a story, if any.
+    private var extra: Extra?
+    /// Stories shown since each card slide was last on screen.
+    private var since: [Extra: Int] = [:]
+    /// The story enough sources reported at once, if there is one now, and when each such story was last shown.
+    private var takeover: StoryCluster?
+    private var takeoverShown: [String: Date] = [:]
+    /// A takeover comes back this often while it lasts.
+    private static let takeoverRepeat: TimeInterval = 10 * 60
+    private var local: LocalReport?
+    private var localFetched = Date.distantPast
+    private var localGeneration = 0
+    private var events: [WikiEvent] = []
+    private var eventsKey = ""                    // language and day of `events`
+    private var eventsTried = Date.distantPast
+    private var eventOffset = 0                   // the next "On this day" slide starts here
+    private var eventsOnScreen: [WikiEvent] = []
     private var counterLayers: [(WorldCounter, CATextLayer)] = []
     private var slideStart = Date.distantPast
     private(set) var slideDuration: TimeInterval = 15
@@ -75,6 +90,26 @@ final class NewsCanvas: NSView {
         settings.counterIDs.compactMap { id in WorldCounter.all.first { $0.id == id } }.filter { $0.isRelevant(to: settings) }
     }
     private var countersEnabled: Bool { settings.counters && !selectedCounters.isEmpty }
+
+    enum Extra: Hashable { case counters, local, onThisDay, takeover }
+
+    /// Card slides switched on and with something to show, in the order they take turns.
+    private var readyExtras: [Extra] {
+        var out: [Extra] = []
+        if countersEnabled { out.append(.counters) }
+        if settings.localCard, let local, !local.isEmpty { out.append(.local) }
+        if settings.onThisDay, !events.isEmpty { out.append(.onThisDay) }
+        return out
+    }
+
+    private func every(_ kind: Extra) -> Int {
+        switch kind {
+        case .counters: return settings.counterEvery
+        case .local: return settings.localEvery
+        case .onThisDay: return settings.onThisDayEvery
+        case .takeover: return .max
+        }
+    }
 
     init(frame: NSRect, settings: NyheterSettings) {
         self.settings = settings
@@ -138,23 +173,31 @@ final class NewsCanvas: NSView {
         // here only when random mode is switched on or the current theme is taken out of the pool.
         if new.randomTheme, !old.randomTheme || !new.randomThemeIDs.contains(theme.id) {
             pickRandomTheme()
-            if showingCounters || current != nil { showSlide(animated: false) }
+            if extra != nil || current != nil { showSlide(animated: false) }
         } else if !new.randomTheme, theme.id != new.themeID {
             theme = Theme.named(new.themeID)
             laidOutSize = .zero
             relayoutIfNeeded()
         } else if new.showQRCode != old.showQRCode || new.showUpcoming != old.showUpcoming || new.headlineOnly != old.headlineOnly || new.showProgress != old.showProgress
-                    || new.textWidth != old.textWidth || (showingCounters && (new.counterIDs != old.counterIDs || new.counters != old.counters)) {
-            if showingCounters || current != nil { showSlide(animated: false) }
+                    || new.textWidth != old.textWidth || (extra == .counters && (new.counterIDs != old.counterIDs || new.counters != old.counters))
+                    || (extra == .onThisDay && !new.onThisDay) || (extra == .local && (!new.localCard || new.localParts != old.localParts)) {
+            if extra != nil || current != nil { showSlide(animated: false) }
         }
+        if new.localCard, !old.localCard || new.places != old.places || new.localParts != old.localParts || new.priceArea != old.priceArea {
+            local = nil
+            fetchLocal()
+        }
+        if new.onThisDay, !old.onThisDay || new.onThisDayLanguage != old.onThisDayLanguage || new.language != old.language { fetchEvents(force: true) }
     }
 
     func tick() {
         relayoutIfNeeded()
         let now = Date()
         if now.timeIntervalSince(lastFetch) > refreshInterval { fetch() }
-        if (!stories.isEmpty || countersEnabled), now.timeIntervalSince(slideStart) >= slideDuration { advance() }
-        if showingCounters { updateCounters(now) }
+        if settings.localCard, now.timeIntervalSince(localFetched) > 30 * 60 { fetchLocal() }
+        if settings.onThisDay, eventsKey != eventsWanted, now.timeIntervalSince(eventsTried) > 10 * 60 { fetchEvents() }
+        if (!stories.isEmpty || !readyExtras.isEmpty), now.timeIntervalSince(slideStart) >= slideDuration { advance() }
+        if extra == .counters { updateCounters(now) }
         // Burn-in protection: nudge the whole layout a little every minute.
         if now.timeIntervalSince(lastDrift) > 60 {
             lastDrift = now
@@ -180,6 +223,15 @@ final class NewsCanvas: NSView {
     /// Fetches all feeds now instead of waiting for the next refresh.
     func refresh() { fetch() }
 
+    /// Shows the given stories as if just fetched, without the network (for the render harness in tools/).
+    func show(_ stories: [Story]) {
+        fetchGeneration += 1
+        lastFetch = Date()
+        fetched = stories
+        newsDate = Date()
+        reorder()
+    }
+
     /// Fetches every feed. Stories show as each feed answers; until then a feed's stories from the
     /// previous fetch stay, and a feed that fails keeps them (so offline shows the saved news).
     private func fetch() {
@@ -195,15 +247,21 @@ final class NewsCanvas: NSView {
         var collected: [Story] = []
         var answered: Set<String> = []
         var failed: Set<String> = []
+        var outcomes: [String: (url: URL, outcome: FeedHealth.Outcome)] = [:]
         var pending = requests.count
         for request in requests {
             var urlRequest = URLRequest(url: request.url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
-            urlRequest.setValue("Nyheter/1.0 (macOS screen saver)", forHTTPHeaderField: "User-Agent")
-            URLSession.shared.dataTask(with: urlRequest) { data, _, _ in
+            urlRequest.setValue(WebCache.userAgent, forHTTPHeaderField: "User-Agent")
+            URLSession.shared.dataTask(with: urlRequest) { [weak self] data, response, _ in
+                let status = (response as? HTTPURLResponse)?.statusCode
                 let parsed = data.map(request.parse) ?? []
+                let outcome: FeedHealth.Outcome = !parsed.isEmpty ? .ok(stories: parsed.count, newest: parsed.map(\.date).filter { $0 != .distantPast }.max())
+                    : status == nil ? .failed(.offline, code: nil)
+                    : (200..<300).contains(status!) ? .failed(.empty, code: status) : .failed(.http, code: status)
                 DispatchQueue.main.async { [weak self] in
                     guard let self, generation == self.fetchGeneration else { return }
                     pending -= 1
+                    outcomes[request.feed] = (request.url, outcome)
                     if parsed.isEmpty { failed.insert(request.feed) } else { collected += parsed; answered.insert(request.feed); self.newsDate = startedAt }
                     if pending > 0 {
                         guard !parsed.isEmpty else { return }
@@ -212,6 +270,8 @@ final class NewsCanvas: NSView {
                         return
                     }
                     self.failedFeeds = failed
+                    // When nothing answered, the Mac is probably offline: that says nothing about the feeds.
+                    if !answered.isEmpty { FeedHealth.record(outcomes, at: startedAt) }
                     guard !collected.isEmpty else {
                         // Nothing came back: keep what is on screen and try again soon.
                         self.lastFetch = Date().addingTimeInterval(self.offlineRetryOffset)
@@ -240,6 +300,7 @@ final class NewsCanvas: NSView {
         let filtered = Filters.apply(fetched, settings.filters, sections: settings.blockedSections)
         if !filtered.hits.isEmpty { BlockLog.record(filtered.hits, clearedAt: settings.logClearedAt) }
         let fresh = Sources.assemble(filtered.kept, settings: settings, seen: settings.unseenFirst ? SeenStories.keys() : [])
+        takeover = Clusters.takeover(filtered.kept.filter { settings.isEnabled($0.source) }, settings: settings)
         lastReport = (fetched, fresh, filtered.hits, newsDate)
         onFetch?(fetched, fresh, filtered.hits, newsDate)
         let currentTitle = current.flatMap { stories.indices.contains($0) ? stories[$0].title : nil }
@@ -253,24 +314,77 @@ final class NewsCanvas: NSView {
            settings.breakingLabel(for: fresh[first]) != nil || settings.unseenFirst {
             nextIndex = first
         }
-        if stories.isEmpty, !countersEnabled { showPlaceholder(L("No stories – choose sources in the Nyheter app."), icon: "newspaper") }
-        else if wasEmpty, !showingCounters { advance() }
+        if stories.isEmpty, readyExtras.isEmpty { showPlaceholder(L("No stories – choose sources in the Nyheter app."), icon: "newspaper") }
+        else if wasEmpty, extra == nil { advance() }
+    }
+
+    /// Weather, warnings and prices for the "Here and now" card.
+    private func fetchLocal() {
+        localFetched = Date()
+        localGeneration += 1
+        let generation = localGeneration
+        HereAndNow.fetch(settings) { [weak self] report in
+            guard let self, generation == self.localGeneration else { return }
+            let first = self.local == nil
+            self.local = report
+            if self.extra == .local { self.showSlide(animated: false) }
+            else if first, self.stories.isEmpty, self.extra == nil, !report.isEmpty { self.advance() }
+        }
+    }
+
+    /// Wikipedia language and day the "On this day" card should show.
+    private var eventsWanted: String {
+        let day = Calendar.current.dateComponents([.month, .day], from: Date())
+        return "\(OnThisDay.language(settings))-\(day.month!)-\(day.day!)"
+    }
+
+    private func fetchEvents(force: Bool = false) {
+        let key = eventsWanted
+        guard force || key != eventsKey else { return }
+        eventsTried = Date()
+        OnThisDay.fetch(language: OnThisDay.language(settings)) { [weak self] list in
+            guard let self, key == self.eventsWanted, !list.isEmpty else { return }
+            let first = self.events.isEmpty
+            self.events = list
+            self.eventsKey = key
+            self.eventOffset = 0
+            if self.extra == .onThisDay { self.showSlide(animated: false) }
+            else if first, self.stories.isEmpty, self.extra == nil { self.advance() }
+        }
     }
 
     // MARK: - Slides
 
     private func advance() {
-        if countersEnabled, stories.isEmpty || sinceCounters >= settings.counterEvery {
-            sinceCounters = 0
-            if showingCounters, stories.isEmpty { slideStart = Date(); return }   // nothing else to show
-            showingCounters = true
+        let now = Date()
+        // A story many sources picked up at once fills the screen, and comes back now and then while it lasts.
+        if extra != .takeover, let big = takeover, now.timeIntervalSince(takeoverShown[big.id] ?? .distantPast) >= Self.takeoverRepeat {
+            takeoverShown[big.id] = now
+            extra = .takeover
+            current = nil
+            showSlide(animated: true)
+            return
+        }
+        // Card slides come between stories, each after its own number of stories; never two in a row
+        // unless there are no stories, when they take turns.
+        let ready = readyExtras
+        // The most overdue goes first, so a card shown often doesn't crowd out the others.
+        let due = ready.filter { stories.isEmpty || (extra == nil && since[$0, default: 0] >= every($0)) }
+            .enumerated().sorted { a, b in
+                let x = since[a.element, default: 0] - every(a.element), y = since[b.element, default: 0] - every(b.element)
+                return x != y ? x > y : a.offset < b.offset
+            }.map(\.element)
+        if let next = due.first(where: { $0 != extra }) ?? (stories.isEmpty ? due.first : nil) {
+            if next == extra { slideStart = now; return }   // the only thing to show is already on screen
+            since[next] = 0
+            extra = next
             current = nil
         } else if !stories.isEmpty {
             let i = nextIndex % stories.count
             current = i
             nextIndex = (i + 1) % stories.count
-            sinceCounters += 1
-            showingCounters = false
+            for kind in ready { since[kind, default: 0] += 1 }
+            extra = nil
         } else {
             return
         }
@@ -294,22 +408,45 @@ final class NewsCanvas: NSView {
         slideStart = Date()
         let source: String
         let content: CALayer
-        if showingCounters {
+        if extra == .takeover, takeover == nil { extra = nil }   // the big story has passed
+        if extra == .local, local?.isEmpty != false { extra = nil }
+        if extra == .onThisDay, events.isEmpty { extra = nil }
+        switch extra {
+        case .counters:
             source = "world"
             slideDuration = settings.counterSeconds
             content = makeCounters(animated: animated)
             updatePhoto(nil)
-        } else if let i = current, stories.indices.contains(i) {
+        case .local:
+            source = "world"
+            slideDuration = settings.localSeconds
+            content = makeLocal(animated: animated)
+            updatePhoto(nil)
+        case .onThisDay:
+            source = "world"
+            slideDuration = settings.onThisDaySeconds
+            content = makeOnThisDay(animated: animated)
+            updatePhoto(nil)
+        case .takeover:
+            let story = takeover!.lead(language: L10n.code.hasPrefix("sv") ? "sv" : "en")
+            source = story.source
+            shownThisRun.insert(Sources.titleKey(story.title))
+            if recordsSeen { SeenStories.record(story); ShownHistory.record(story) }
+            let made = makeTakeover(takeover!, story: story, animated: animated)
+            content = made.layer
+            // A little longer than a story: there is more to read.
+            slideDuration = max(15, settings.duration(words: made.visibleWords, headlineOnly: false) + 5)
+            updatePhoto(theme.photo || theme.photoWash ? story.imageURL : nil)
+        case nil:
+            guard let i = current, stories.indices.contains(i) else { return }
             let story = stories[i]
             source = story.source
             shownThisRun.insert(Sources.titleKey(story.title))
-            if recordsSeen { SeenStories.record(story) }
+            if recordsSeen { SeenStories.record(story); ShownHistory.record(story) }
             let made = makeStory(story, animated: animated)
             content = made.layer
             slideDuration = settings.duration(words: made.visibleWords, headlineOnly: settings.headlineOnly)
             updatePhoto(theme.photo || theme.photoWash ? story.imageURL : nil)
-        } else {
-            return
         }
         applyColors(source, animated: animated)
         replaceSlide(with: content, animated: animated)
@@ -320,7 +457,7 @@ final class NewsCanvas: NSView {
 
     private func showPlaceholder(_ text: String, icon: String) {
         current = nil
-        showingCounters = false
+        extra = nil
         let size = 2.4 * vu
         let label = textLayer(NSAttributedString(string: text, attributes: attrs(theme.headline.font(size), theme.muted)), width: 60 * vw)
         let symbol = iconLayer(icon, size: size, color: theme.muted)
@@ -354,7 +491,7 @@ final class NewsCanvas: NSView {
         laidOutScale = scale
         layoutThemeLayers()
         if stories.isEmpty, !fetched.isEmpty { reorder() }   // saved news from the last run
-        if showingCounters || current != nil { showSlide(animated: false) }
+        if extra != nil || current != nil { showSlide(animated: false) }
         else if stories.isEmpty { showPlaceholder(L("Fetching news…"), icon: "download") }
     }
 
@@ -465,7 +602,7 @@ final class NewsCanvas: NSView {
         sourceTabs.sublayers?.forEach { $0.removeFromSuperlayer() }
         guard theme.sourceTabs else { return }
         let size = 1 * vu, pad = CGSize(width: 1 * vu, height: 0.55 * vh)
-        let kinds = settings.enabledProviders.map(\.id) + (countersEnabled ? ["world"] : [])
+        let kinds = settings.enabledProviders.map(\.id) + (readyExtras.isEmpty ? [] : ["world"])
         var x: CGFloat = 0, height: CGFloat = 0
         var tabs: [CALayer] = []
         for kind in kinds {
@@ -754,6 +891,326 @@ final class NewsCanvas: NSView {
 
     private var counterFont = NSFont.systemFont(ofSize: 12)
 
+    // MARK: - Breaking takeover
+
+    /// A story many sources reported within minutes: a band in the signal colour saying so,
+    /// a larger headline, the text, and when each source had it.
+    private func makeTakeover(_ cluster: StoryCluster, story: Story, animated: Bool) -> (layer: CALayer, visibleWords: Int) {
+        let container = CALayer()
+        let width = mainWidth
+        let color = theme.mark(story.source)
+        var visible: [NSAttributedString] = []
+        var y: CGFloat = 0
+
+        // The band: pulsing dot, "Breaking", how many sources and how fast.
+        let size = 1.15 * vu
+        let needed = min(cluster.reports.count, max(2, settings.takeoverSources))
+        let bandText = upper(L("Breaking") + "  ·  " + L("%d sources in %d min", cluster.reports.count, max(1, cluster.minutes(toReach: needed))),
+                             theme.ui.font(size), luminance(color) > 0.55 ? .black : .white, kern: 0.16)
+        let label = textLayer(bandText, width: width)
+        let pad = CGSize(width: 1.1 * vu, height: 0.8 * vh)
+        let band = CALayer()
+        band.backgroundColor = color.cgColor
+        band.cornerRadius = theme.chipRadius * (label.bounds.height + 2 * pad.height)
+        let d = 0.6 * size
+        let dot = CALayer()
+        dot.backgroundColor = (luminance(color) > 0.55 ? NSColor.black : NSColor.white).cgColor
+        dot.cornerRadius = d / 2
+        dot.frame = CGRect(x: pad.width, y: pad.height + (label.bounds.height - d) / 2, width: d, height: d)
+        let pulse = CABasicAnimation(keyPath: "opacity")
+        pulse.fromValue = 1
+        pulse.toValue = 0.2
+        pulse.duration = 0.7
+        pulse.autoreverses = true
+        pulse.repeatCount = .infinity
+        dot.add(pulse, forKey: "pulse")
+        label.frame.origin = CGPoint(x: pad.width + d + 0.6 * size, y: pad.height)
+        band.frame = CGRect(x: 0, y: y, width: label.frame.maxX + pad.width, height: label.bounds.height + 2 * pad.height)
+        band.addSublayer(dot)
+        band.addSublayer(label)
+        container.addSublayer(band)
+        y += band.bounds.height + 3 * vh
+
+        let headSize = (story.title.count > 70 ? 4.8 : 6.0) * vu * theme.headlineScale
+        let lineHeight = headSize * theme.headlineLineHeight
+        let title = theme.uppercaseHeadline ? story.title.uppercased(with: Locale(identifier: "sv_SE")) : story.title
+        let headline = NSAttributedString(string: title,
+            attributes: attrs(theme.headline.font(headSize), theme.text, lineHeight: lineHeight, kern: theme.headlineKern))
+        var lines: [CALayer] = []
+        for line in splitLines(headline, width: width).prefix(4) {
+            visible.append(line)
+            let l = textLayer(line, width: width + 4)
+            l.frame.origin = CGPoint(x: 0, y: y)
+            container.addSublayer(l)
+            lines.append(l)
+            y += lineHeight
+        }
+
+        var lede: CALayer?
+        if let text = story.body.first, !text.isEmpty {
+            y += 3 * vh
+            let ledeSize = 1.6 * vu * theme.ledeScale, ledeLine = ledeSize * 1.45
+            let paragraph = NSAttributedString(string: text,
+                attributes: attrs(theme.lede.font(ledeSize), theme.text.withAlphaComponent(theme.ledeAlpha), lineHeight: ledeLine))
+            let count = max(0, min(3, Int((zone.upperBound - zone.lowerBound - y - 8 * vh) / ledeLine)))
+            if count > 0 {
+                visible += splitLines(paragraph, width: ledeWidth).prefix(count)
+                let t = textLayer(paragraph, width: ledeWidth, maxHeight: ledeLine * CGFloat(count))
+                t.frame.origin = CGPoint(x: 0, y: y)
+                container.addSublayer(t)
+                lede = t
+                y += t.bounds.height
+            }
+        }
+
+        // When each source had it: "SVT 14:02 · BBC 14:05 · …"
+        y += 3 * vh
+        let reports = CALayer()
+        var x: CGFloat = 0, rowHeight: CGFloat = 0, ry: CGFloat = 0
+        for report in cluster.reports.prefix(8) {
+            let name = textLayer(upper(Sources.label(report.source), theme.ui.font(0.9 * vu), theme.mark(report.source), kern: 0.12), width: 14 * vu)
+            let time = textLayer(NSAttributedString(string: clock(report.date),
+                attributes: attrs(FontSpec(family: theme.ui.family, weight: .regular).numberFont(0.9 * vu), theme.muted)), width: 6 * vu)
+            let item = CALayer()
+            time.frame.origin = CGPoint(x: name.bounds.width + 0.5 * vu, y: (name.bounds.height - time.bounds.height) / 2)
+            item.addSublayer(name)
+            item.addSublayer(time)
+            item.frame = CGRect(x: 0, y: 0, width: time.frame.maxX, height: name.bounds.height)
+            if x > 0, x + item.bounds.width > width { x = 0; ry += rowHeight + 0.8 * vh }
+            item.frame.origin = CGPoint(x: x, y: ry)
+            reports.addSublayer(item)
+            x += item.bounds.width + 2 * vu
+            rowHeight = max(rowHeight, item.bounds.height)
+        }
+        reports.frame = CGRect(x: 0, y: y, width: width, height: ry + rowHeight)
+        container.addSublayer(reports)
+        y += reports.bounds.height
+
+        let top = max(zone.lowerBound, (zone.lowerBound + zone.upperBound - y) / 2)
+        container.frame = CGRect(x: 5 * vw, y: top, width: width, height: y)
+        if animated {
+            fadeIn(band, delay: 0.5, dy: 1.5 * vh)
+            for (k, line) in lines.enumerated() { fadeIn(line, delay: 0.7 + 0.14 * Double(k), dy: 0.35 * headSize) }
+            if let lede { fadeIn(lede, delay: 0.9 + 0.14 * Double(lines.count), dy: 1.5 * vh) }
+            fadeIn(reports, delay: 1.2 + 0.14 * Double(lines.count), dy: 1.5 * vh)
+        }
+        let words = visible.reduce(0) { $0 + $1.string.split(whereSeparator: \.isWhitespace).count }
+        return (container, words)
+    }
+
+    private func luminance(_ color: NSColor) -> CGFloat { Self.luminance(color) }
+
+    // MARK: - "Here and now" card
+
+    /// Weather for each place, SMHI's warnings, the electricity price, the policy rate and inflation.
+    private func makeLocal(animated: Bool) -> CALayer {
+        let container = CALayer()
+        let width = mainWidth
+        let report = local ?? LocalReport()
+        var y: CGFloat = 0
+        if theme.kickerRule {
+            let rules = kickerRules(width: width)
+            container.addSublayer(rules)
+            y += rules.bounds.height + 2.5 * vh
+        }
+        let meta = metaRow(chip: L("Sweden"), mark: "world", category: L("Here and now"),
+                           age: Date().formatted(.dateTime.locale(L10n.locale).weekday(.wide).day().month(.wide)))
+        meta.frame.origin.y = y
+        container.addSublayer(meta)
+        y += meta.bounds.height + 3 * vh
+
+        var parts: [CALayer] = [meta]
+        // With one place its name is the heading; with several, each cell names its place.
+        if report.weather.count <= 1 {
+            let headSize = 3.6 * vu * theme.headlineScale
+            let title = report.weather.first?.place ?? settings.places.first?.name ?? L("Here and now")
+            let heading = textLayer(NSAttributedString(string: theme.uppercaseHeadline ? title.uppercased(with: L10n.locale) : title,
+                attributes: attrs(theme.headline.font(headSize), theme.text, kern: theme.headlineKern)), width: width)
+            heading.frame.origin.y = y
+            container.addSublayer(heading)
+            parts.append(heading)
+            y += heading.bounds.height + 3 * vh
+        }
+
+        // Warnings first, in a band, the most severe two.
+        if report.warningsChecked, let worst = report.warnings.first {
+            let colors: [Int: NSColor] = [1: hex(0xf2c200), 2: hex(0xf07b00), 3: hex(0xd7191c)]
+            let band = CALayer()
+            let tone = colors[worst.severity] ?? theme.mark("world")
+            band.backgroundColor = tone.withAlphaComponent(worst.severity == 0 ? 0.18 : 0.9).cgColor
+            band.cornerRadius = 0.5 * vu
+            let ink: NSColor = worst.severity == 0 ? theme.text : (worst.severity == 1 ? .black : .white)
+            let icon = iconLayer("siren", size: 1.6 * vu, color: ink)
+            var lines = report.warnings.prefix(2).map { w in
+                [w.levelName, w.event, w.area].filter { !$0.isEmpty }.joined(separator: " · ")
+            }
+            if report.warnings.count > 2 { lines[1] += "  " + L("(+%d more)", report.warnings.count - 2) }
+            let text = textLayer(NSAttributedString(string: lines.joined(separator: "\n"),
+                attributes: attrs(FontSpec(family: theme.ui.family, weight: .semibold).font(1.1 * vu), ink, lineHeight: 1.6 * vu)),
+                width: width - 6 * vu)
+            let pad = 1.2 * vu
+            icon.frame.origin = CGPoint(x: pad, y: pad)
+            text.frame.origin = CGPoint(x: pad + 2.4 * vu, y: pad)
+            band.frame = CGRect(x: 0, y: y, width: width, height: max(text.bounds.height, icon.bounds.height) + 2 * pad)
+            band.addSublayer(icon)
+            band.addSublayer(text)
+            container.addSublayer(band)
+            parts.append(band)
+            y += band.bounds.height + 3 * vh
+        }
+
+        // Cells: label, big value with an icon, a line of detail.
+        struct Cell { let label: String; let value: String; let icon: String?; let note: String }
+        var cells: [Cell] = []
+        let number = { (value: Double, decimals: Int) -> String in
+            value.formatted(.number.locale(L10n.locale).precision(.fractionLength(decimals)))
+        }
+        let degrees = { (value: Double) -> String in number(value.rounded(), 0).replacingOccurrences(of: "-", with: "−") + "°" }
+        for weather in report.weather {
+            let sky = HereAndNow.describe(symbol: weather.symbol)
+            cells.append(Cell(label: weather.place, value: degrees(weather.temperature), icon: sky.icon,
+                              note: [sky.text.isEmpty ? nil : L(sky.text), L("wind %@ m/s", number(weather.wind, 0)),
+                                     degrees(weather.low) == degrees(weather.high) ? L("next 12 h %@", degrees(weather.low))
+                                        : L("next 12 h %@ to %@", degrees(weather.low), degrees(weather.high))].compactMap { $0 }.joined(separator: " · ")))
+        }
+        if report.warningsChecked, report.warnings.isEmpty {
+            cells.append(Cell(label: L("Weather warnings"), value: L("None"), icon: "circle-check",
+                              note: settings.places.map(\.county).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }.joined(separator: ", ")))
+        }
+        if let power = report.power {
+            cells.append(Cell(label: L("Electricity price %@ now", power.area), value: number(power.now, 0) + " " + L("öre/kWh"), icon: "zap",
+                              note: [L("today %@–%@", number(power.low, 0), number(power.high, 0)),
+                                     power.cheapestHour.map { L("cheapest from %@", clock($0)) }].compactMap { $0 }.joined(separator: " · ")))
+        }
+        if let rate = report.policyRate {
+            cells.append(Cell(label: L("Policy rate"), value: number(rate.value, 2) + " %", icon: "landmark",
+                              note: L("Sveriges Riksbank")))
+        }
+        if let inflation = report.inflation {
+            cells.append(Cell(label: L("Inflation (CPIF)"), value: number(inflation.value, 1) + " %", icon: "percent",
+                              note: L("%@, SCB", inflation.month.formatted(.dateTime.locale(L10n.locale).month(.wide).year()))))
+        }
+
+        let columns = narrow && cells.count <= 4 ? 2 : 3
+        let columnWidth = (width - CGFloat(columns - 1) * 2 * vu) / CGFloat(columns)
+        let valueSize = (cells.count > 4 ? 2.3 : 3) * vu
+        var rowHeight: CGFloat = 0
+        var cellLayers: [CALayer] = []
+        for cell in cells {
+            let layer = CALayer()
+            let label = textLayer(upper(cell.label, theme.ui.font(0.85 * vu), theme.muted, kern: 0.12), width: columnWidth)
+            var x: CGFloat = 0
+            let top = label.bounds.height + 0.8 * vh
+            if let icon = cell.icon {
+                let symbol = iconLayer(icon, size: valueSize * 0.8, color: theme.mark("world"))
+                symbol.frame.origin = CGPoint(x: 0, y: top + valueSize * 0.2)
+                layer.addSublayer(symbol)
+                x = valueSize * 1.05
+            }
+            let value = textLayer(NSAttributedString(string: cell.value, attributes: attrs(theme.number.numberFont(valueSize), theme.text)),
+                                  width: columnWidth - x)
+            value.frame.origin = CGPoint(x: x, y: top)
+            let note = textLayer(NSAttributedString(string: cell.note,
+                attributes: attrs(FontSpec(family: theme.ui.family, weight: .regular).font(0.9 * vu), theme.muted, lineHeight: 1.25 * vu)),
+                width: columnWidth, maxHeight: 2.5 * vu)
+            note.frame.origin = CGPoint(x: 0, y: value.frame.maxY + 0.5 * vh)
+            [label, value, note].forEach(layer.addSublayer)
+            layer.frame = CGRect(x: 0, y: 0, width: columnWidth, height: note.frame.maxY)
+            rowHeight = max(rowHeight, layer.bounds.height)
+            cellLayers.append(layer)
+        }
+        // Only the rows that fit above the footer; places and prices come first.
+        let room = zone.upperBound - zone.lowerBound - y - 2.5 * vu
+        let rows = max(1, Int((room + 2.5 * vh) / (rowHeight + 2.5 * vh)))
+        cellLayers = Array(cellLayers.prefix(rows * columns))
+        for (k, cell) in cellLayers.enumerated() {
+            cell.frame.origin = CGPoint(x: CGFloat(k % columns) * (columnWidth + 2 * vu), y: y + CGFloat(k / columns) * (rowHeight + 2.5 * vh))
+            container.addSublayer(cell)
+            if animated { fadeIn(cell, delay: 0.8 + 0.1 * Double(k), dy: 1.5 * vh) }
+        }
+        y += CGFloat((cellLayers.count + columns - 1) / columns) * (rowHeight + 2.5 * vh)
+
+        let sources = [report.weather.isEmpty && !report.warningsChecked ? nil : "SMHI", report.power == nil ? nil : "elprisetjustnu.se",
+                       report.policyRate == nil ? nil : "Riksbanken", report.inflation == nil ? nil : "SCB"].compactMap { $0 }
+        let note = textLayer(NSAttributedString(string: L("Sources:") + " " + sources.joined(separator: ", ") + ". " + L("Spot price without VAT, fees or surcharges."),
+            attributes: attrs(theme.ui.font(0.75 * vu), theme.muted)), width: width)
+        note.frame.origin.y = y
+        container.addSublayer(note)
+        y += note.bounds.height
+
+        let top = max(zone.lowerBound, (zone.lowerBound + zone.upperBound - y) / 2)
+        container.frame = CGRect(x: 5 * vw, y: top, width: width, height: y)
+        if animated {
+            for (k, part) in parts.enumerated() { fadeIn(part, delay: 0.5 + 0.1 * Double(k), dy: 1.5 * vh) }
+        }
+        return container
+    }
+
+    // MARK: - "On this day" card
+
+    /// Three events from Wikipedia's list for today, a different three each time.
+    private func makeOnThisDay(animated: Bool) -> CALayer {
+        let container = CALayer()
+        let width = mainWidth
+        var y: CGFloat = 0
+        if theme.kickerRule {
+            let rules = kickerRules(width: width)
+            container.addSublayer(rules)
+            y += rules.bounds.height + 2.5 * vh
+        }
+        let language = OnThisDay.language(settings)
+        let meta = metaRow(chip: "Wikipedia", mark: "world", category: L("On this day"), age: OnThisDay.nativeName(language))
+        meta.frame.origin.y = y
+        container.addSublayer(meta)
+        y += meta.bounds.height + 3 * vh
+
+        let headSize = 3.6 * vu * theme.headlineScale
+        let day = Date().formatted(.dateTime.locale(L10n.locale).day().month(.wide))
+        let heading = textLayer(NSAttributedString(string: theme.uppercaseHeadline ? day.uppercased(with: L10n.locale) : day,
+            attributes: attrs(theme.headline.font(headSize), theme.text, kern: theme.headlineKern)), width: width)
+        heading.frame.origin.y = y
+        container.addSublayer(heading)
+        y += heading.bounds.height + 3.5 * vh
+
+        let count = min(3, events.count)
+        eventsOnScreen = (0..<count).map { events[(eventOffset + $0) % events.count] }
+        eventOffset = (eventOffset + count) % max(1, events.count)
+
+        let yearWidth = 9 * vu
+        let textSize = 1.55 * vu * theme.ledeScale, textLine = textSize * 1.4
+        var rows: [CALayer] = []
+        for event in eventsOnScreen {
+            let row = CALayer()
+            let year = textLayer(NSAttributedString(string: event.year < 0 ? L("%d BC", -event.year) : String(event.year),
+                attributes: attrs(theme.number.numberFont(2.6 * vu), theme.mark("world"))), width: yearWidth)
+            let text = textLayer(NSAttributedString(string: event.text,
+                attributes: attrs(theme.lede.font(textSize), theme.text.withAlphaComponent(theme.ledeAlpha), lineHeight: textLine)),
+                width: width - yearWidth - 1.5 * vu, maxHeight: textLine * 3)
+            text.frame.origin = CGPoint(x: yearWidth + 1.5 * vu, y: max(0, (year.bounds.height - textLine) / 2))
+            row.addSublayer(year)
+            row.addSublayer(text)
+            row.frame = CGRect(x: 0, y: y, width: width, height: max(year.bounds.height, text.frame.maxY))
+            container.addSublayer(row)
+            rows.append(row)
+            y += row.bounds.height + 2.5 * vh
+        }
+
+        let note = textLayer(NSAttributedString(string: L("From Wikipedia, the free encyclopedia (CC BY-SA)."),
+            attributes: attrs(theme.ui.font(0.75 * vu), theme.muted)), width: width)
+        note.frame.origin.y = y
+        container.addSublayer(note)
+        y += note.bounds.height
+
+        let top = max(zone.lowerBound, (zone.lowerBound + zone.upperBound - y) / 2)
+        container.frame = CGRect(x: 5 * vw, y: top, width: width, height: y)
+        if animated {
+            fadeIn(meta, delay: 0.6, dy: 1.5 * vh)
+            fadeIn(heading, delay: 0.7, dy: 2 * vh)
+            for (k, row) in rows.enumerated() { fadeIn(row, delay: 0.9 + 0.15 * Double(k), dy: 1.5 * vh) }
+        }
+        return container
+    }
+
     private func updateCounters(_ now: Date) {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
@@ -890,13 +1347,26 @@ final class NewsCanvas: NSView {
     private func rebuildAside(animated: Bool) {
         aside.sublayers?.forEach { $0.removeFromSuperlayer() }
         let width = 26 * vu, pad = 2.2 * vu
-        let story = showingCounters ? nil : current.flatMap { stories.indices.contains($0) ? stories[$0] : nil }
-        let link = story?.link
+        // What the QR code leads to: the story, the big story's chosen report, or the first event's Wikipedia article.
+        let target: (link: URL, source: String, heading: String)?
+        switch extra {
+        case .takeover:
+            let lead = takeover?.lead(language: L10n.code.hasPrefix("sv") ? "sv" : "en")
+            target = lead.flatMap { s in s.link.map { ($0, s.source, L("Read the whole story")) } }
+        case .onThisDay:
+            target = eventsOnScreen.first?.link.map { ($0, "world", L("Read more on Wikipedia")) }
+        case .counters, .local:
+            target = nil
+        case nil:
+            let story = current.flatMap { stories.indices.contains($0) ? stories[$0] : nil }
+            target = story.flatMap { s in s.link.map { ($0, s.source, L("Read the whole story")) } }
+        }
         var y: CGFloat = 0
 
         let side = 13 * vu
-        if settings.showQRCode, let link, let story, let code = qrImage(link, source: story.source, pixels: side * scale) {
-            let heading = textLayer(upper(L("Read the whole story"), theme.ui.font(0.8 * vu), theme.mark(story.source), kern: 0.14), width: width - pad)
+        if settings.showQRCode, let target, let code = qrImage(target.link, source: target.source, pixels: side * scale) {
+            let link = target.link
+            let heading = textLayer(upper(target.heading, theme.ui.font(0.8 * vu), theme.mark(target.source), kern: 0.14), width: width - pad)
             heading.frame.origin = CGPoint(x: pad, y: y)
             aside.addSublayer(heading)
             y += heading.bounds.height + 1.6 * vh
@@ -1016,7 +1486,7 @@ final class NewsCanvas: NSView {
     private func rebuildFooter(_ source: String) {
         footer.sublayers?.forEach { $0.removeFromSuperlayer() }
         let width = bounds.width - 10 * vw
-        let position = showingCounters ? "" : current.map { "\($0 + 1) / \(stories.count)" } ?? ""
+        let position = extra != nil ? "" : current.map { "\($0 + 1) / \(stories.count)" } ?? ""
         let count = textLayer(upper(position, theme.ui.font(0.8 * vu), theme.muted, kern: 0.12), width: 10 * vu)
         let height = max(count.bounds.height, 2)
         count.frame.origin = CGPoint(x: width - count.bounds.width, y: 0)

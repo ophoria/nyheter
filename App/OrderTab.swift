@@ -93,6 +93,30 @@ struct OrderTab: View {
             }
 
             Section {
+                Toggle(L("Fill the screen when many sources report the same story"), isOn: $store.settings.takeover)
+                if s.takeover {
+                    Stepper(value: $store.settings.takeoverSources, in: 2...8) {
+                        LabeledContent(L("Sources needed"), value: "\(s.takeoverSources)")
+                    }
+                    Picker(L("Within"), selection: $store.settings.takeoverMinutes) {
+                        ForEach(NyheterSettings.takeoverMinuteChoices, id: \.self) { minutes in
+                            Text(minutes < 60 ? L("%d min", minutes) : L("%d h", minutes / 60)).tag(minutes)
+                        }
+                    }
+                    if s.enabledProviders.count < s.takeoverSources {
+                        Label { Text(L("You use %d sources, fewer than needed, so this can't happen yet.", s.enabledProviders.count)) } icon: {
+                            LucideIcon("triangle-alert", size: 12)
+                        }
+                        .font(.callout).foregroundStyle(.orange)
+                    }
+                }
+            } header: {
+                SectionHeader(L("Breaking news"), icon: "siren")
+            } footer: {
+                Text(L("Nyheter compares the names and rare words in headlines, across languages too. When enough different sources report the same thing within the time, the story takes over the screen with each source's time, and comes back every ten minutes for three hours."))
+            }
+
+            Section {
                 Stepper(value: $store.settings.maxPerSource, in: 1...NyheterSettings.maxStories) {
                     LabeledContent(L("Maximum per source"), value: "\(s.maxPerSource)")
                 }

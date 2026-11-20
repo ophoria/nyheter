@@ -297,8 +297,174 @@ struct WorldTab: View {
                     SectionHeader(L("Numbers to show (at most 8)"), icon: "hash")
                 }
             }
+            HereAndNowSections()
+            OnThisDaySections()
         }
         .formStyle(.grouped)
+    }
+}
+
+/// "Here and now": weather, warnings, electricity price, policy rate and inflation for places in Sweden.
+private struct HereAndNowSections: View {
+    @EnvironmentObject private var store: SettingsStore
+    @State private var addingCustom = false
+
+    private static let parts: [(id: String, name: String, icon: String)] = [
+        ("weather", "Weather (SMHI)", "cloud-sun"), ("warnings", "Weather warnings (SMHI)", "siren"),
+        ("power", "Electricity spot price (elprisetjustnu.se)", "zap"), ("rate", "Policy rate (Riksbank)", "landmark"),
+        ("inflation", "Inflation, CPIF (SCB)", "percent"),
+    ]
+
+    var body: some View {
+        let s = store.settings
+        Section {
+            Toggle(L("Show “Here and now”"), isOn: $store.settings.localCard)
+            if s.localCard {
+                Stepper(value: $store.settings.localEvery, in: 1...50) {
+                    LabeledContent(L("Shown after every"), value: L("%d stories", s.localEvery))
+                }
+                Stepper(value: $store.settings.localSeconds, in: 3...300, step: 1) {
+                    LabeledContent(L("Display time"), value: "\(seconds(s.localSeconds)) s")
+                }
+            }
+        } header: {
+            SectionHeader(L("Here and now"), icon: "map-pin")
+        } footer: {
+            Text(L("A card with the weather where you are, SMHI's warnings, today's electricity price, the policy rate and inflation. All from open Swedish services that need no account."))
+        }
+        if s.localCard {
+            Section {
+                ForEach(s.places) { place in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(place.name)
+                            Text("\(place.county) · \(place.priceArea) · " + String(format: "%.2f, %.2f", place.latitude, place.longitude))
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Button { store.settings.places.removeAll { $0 == place } } label: { LucideIcon("circle-minus") }
+                            .buttonStyle(.borderless)
+                            .help(L("Remove"))
+                    }
+                }
+                if s.places.count < NyheterSettings.maxPlaces {
+                    HStack {
+                        Menu {
+                            ForEach(LocalPlace.presets.filter { !s.places.contains($0) }) { place in
+                                Button(place.name) { store.settings.places.append(place) }
+                            }
+                        } label: {
+                            Label { Text(L("Add place")) } icon: { LucideIcon("plus") }
+                        }
+                        .fixedSize()
+                        Button(L("Other place…")) { addingCustom = true }
+                    }
+                }
+                Picker(L("Electricity price area"), selection: $store.settings.priceArea) {
+                    Text(L("Automatic (%@)", s.places.first?.priceArea ?? "SE3")).tag(String?.none)
+                    ForEach(LocalPlace.priceAreas, id: \.self) { Text($0).tag(String?.some($0)) }
+                }
+            } header: {
+                SectionHeader(L("Places (at most %d)", NyheterSettings.maxPlaces), icon: "map-pin")
+            } footer: {
+                Text(L("Weather is shown for each place; warnings for their counties. The price area follows the first place unless you choose one."))
+            }
+            Section {
+                ForEach(Self.parts, id: \.id) { part in
+                    Toggle(isOn: Binding(
+                        get: { store.settings.localParts.contains(part.id) },
+                        set: { on in
+                            let chosen = Set(store.settings.localParts.filter { $0 != part.id } + (on ? [part.id] : []))
+                            store.settings.localParts = HereAndNow.partIDs.filter(chosen.contains)
+                        })) {
+                        Label { Text(L(part.name)) } icon: { LucideIcon(part.icon) }
+                    }
+                }
+            } header: {
+                SectionHeader(L("Show"), icon: "eye")
+            }
+            .sheet(isPresented: $addingCustom) {
+                CustomPlaceSheet { store.settings.places.append($0) }
+            }
+        }
+    }
+}
+
+/// A place not in the list: name, coordinates, county and price area.
+private struct CustomPlaceSheet: View {
+    let add: (LocalPlace) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var latitude = ""
+    @State private var longitude = ""
+    @State private var county = "Stockholms län"
+    @State private var area = "SE3"
+
+    private func number(_ s: String) -> Double? { Double(s.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)) }
+
+    private var place: LocalPlace? {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        // SMHI's forecasts cover Sweden and its neighbours.
+        guard !trimmed.isEmpty, let lat = number(latitude), let lon = number(longitude), (52...72).contains(lat), (2...38).contains(lon) else { return nil }
+        return LocalPlace(name: trimmed, latitude: lat, longitude: lon, county: county, priceArea: area)
+    }
+
+    var body: some View {
+        Form {
+            TextField(L("Name"), text: $name)
+            TextField(L("Latitude"), text: $latitude, prompt: Text("59.33"))
+            TextField(L("Longitude"), text: $longitude, prompt: Text("18.07"))
+            Picker(L("County (for warnings)"), selection: $county) {
+                ForEach(LocalPlace.counties, id: \.self) { Text($0).tag($0) }
+            }
+            Picker(L("Electricity price area"), selection: $area) {
+                ForEach(LocalPlace.priceAreas, id: \.self) { Text($0).tag($0) }
+            }
+            Text(L("Tip: right-click a place in Apple Maps and choose Copy Coordinates."))
+                .font(.callout).foregroundStyle(.secondary)
+        }
+        .formStyle(.grouped)
+        .frame(width: 420)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button(L("Cancel")) { dismiss() } }
+            ToolbarItem(placement: .confirmationAction) {
+                Button(L("Add")) { if let place { add(place); dismiss() } }.disabled(place == nil)
+            }
+        }
+    }
+}
+
+/// "On this day", from Wikipedia, in a language of the user's choice.
+private struct OnThisDaySections: View {
+    @EnvironmentObject private var store: SettingsStore
+
+    var body: some View {
+        let s = store.settings
+        Section {
+            Toggle(L("Show “On this day”"), isOn: $store.settings.onThisDay)
+            if s.onThisDay {
+                Stepper(value: $store.settings.onThisDayEvery, in: 1...50) {
+                    LabeledContent(L("Shown after every"), value: L("%d stories", s.onThisDayEvery))
+                }
+                Stepper(value: $store.settings.onThisDaySeconds, in: 3...300, step: 1) {
+                    LabeledContent(L("Display time"), value: "\(seconds(s.onThisDaySeconds)) s")
+                }
+                Picker(L("Wikipedia language"), selection: $store.settings.onThisDayLanguage) {
+                    let automatic = OnThisDay.language(NyheterSettings())
+                    Text(L("Automatic (%@)", OnThisDay.nativeName(automatic))).tag(String?.none)
+                    Divider()
+                    ForEach(OnThisDay.languages.sorted { OnThisDay.nativeName($0).localizedCompare(OnThisDay.nativeName($1)) == .orderedAscending }, id: \.self) { code in
+                        let local = L10n.locale.localizedString(forLanguageCode: code) ?? code
+                        Text(OnThisDay.nativeName(code) + (OnThisDay.nativeName(code).lowercased() == local.lowercased() ? "" : "  (\(local))"))
+                            .tag(String?.some(code))
+                    }
+                }
+            }
+        } header: {
+            SectionHeader(L("On this day"), icon: "calendar-days")
+        } footer: {
+            Text(L("Three events from Wikipedia's list for today, different ones each time. Only the Wikipedias that publish such a list are offered; Automatic uses the app's language when it can, else English."))
+        }
     }
 }
 

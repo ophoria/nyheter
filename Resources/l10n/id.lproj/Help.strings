@@ -45,3 +45,46 @@ Jika Nyheter tidak muncul lagi, misalnya setelah pembaruan macOS, pilih lagi di 
 "help.trouble.body" = "• **Cuma ada “Mengambil berita…”?** Periksa koneksi internet dan pastikan setidaknya satu sumber menyala.\n• **Ada sumber yang tidak menjawab?** Tunggu sebentar. Koran kadang memblokir kunjungan yang terlalu banyak.\n• **Beritanya terlalu sedikit?** Lihat filter dan rubrik tersembunyi di **Filter**.\n• **Penghemat layar terlihat lama?** Klik **Perbarui penghemat layar**.";
 "help.about.title" = "Tentang Nyheter";
 "help.about.body" = "Nyheter dibuat oleh **snowdrop**.\n\nPunya ide, menemukan bug, atau cuma mau menyapa? Tulis ke **[contact@gaia.li](mailto:contact@gaia.li)**. Setiap pesan dibaca.";
+
+"help.breaking.title" = "Berita terkini";
+"help.breaking.body" = "Saat sesuatu yang besar terjadi, banyak redaksi melaporkannya dalam hitungan menit. Nyheter menyadarinya: ia membandingkan nama dan kata langka di judul berita, juga lintas bahasa.
+
+Ketika cukup banyak sumber berbeda melaporkan berita yang sama dalam waktu singkat, berita itu **mengambil alih layar**: sebuah pita menyebutkan berapa banyak sumber yang memberitakannya dan seberapa cepat, dan di bawah judul kamu melihat kapan tiap sumber melaporkannya. Berita itu muncul kembali setiap sepuluh menit selama tiga jam.
+
+Di **Urutan**, di bawah **Berita terkini**, pilih berapa banyak sumber yang diperlukan dan dalam berapa lama. Jika sedikit sumber yang aktif, hal ini tidak bisa terjadi.";
+"help.history.title" = "Berita apa tadi?";
+"help.history.body" = "Melihat judul lewat lalu kehilangan jejaknya? Klik **Riwayat** (atau tekan ⌘Y). Isinya setiap berita yang ditampilkan penghemat layar dalam seminggu terakhir, terbaru lebih dulu, per hari.
+
+• Cari sebuah kata untuk menemukannya.
+• Klik berita untuk membacanya di situs web surat kabar. Klik kanan untuk menyalin tautan atau judulnya.
+• Centang **Tampilkan di bilah menu** untuk mendapat berita terbaru di menu di atas layar, selama aplikasi terbuka.";
+"help.health.title" = "Kesehatan feed";
+"help.health.body" = "Surat kabar kadang memindahkan atau menutup feed mereka tanpa memberi tahu siapa pun. Nyheter memeriksa setiap feed pada setiap pembaruan dan menampilkan titik di sebelahnya di **Sumber**:
+
+• **Hijau** – berfungsi.
+• **Kuning** – sepi: tidak ada yang baru selama berhari-hari. Feed mungkin sudah ditinggalkan.
+• **Oranye** – tidak merespons saat ini. Biasanya pulih sendiri.
+• **Merah** – rusak: situs menjawab, tetapi dengan error atau tanpa berita. Periksa alamatnya.
+
+Arahkan kursor ke titik untuk detailnya. Di bawah **Kesehatan feed** kamu melihat setiap feed yang perlu perhatian.";
+"help.local.title" = "Di sini dan sekarang";
+"help.local.body" = "Aktifkan **Di sini dan sekarang** di tab **Dunia** untuk kartu berisi apa yang terjadi di tempatmu:
+
+• Cuaca dan dua belas jam ke depan, dari SMHI.
+• Peringatan cuaca SMHI untuk provinsimu.
+• Harga listrik spot hari ini di wilayah harga kamu, dan kapan paling murah.
+• Suku bunga acuan Riksbank dan angka inflasi terbaru dari SCB.
+
+Tambahkan hingga tiga tempat. Pilih sebuah kota dari daftar, atau pilih **Tempat lain…** dan masukkan koordinatnya. Semuanya berasal dari layanan terbuka Swedia yang tidak memerlukan akun.";
+"help.onthisday.title" = "Pada hari ini";
+"help.onthisday.body" = "Aktifkan **Pada hari ini** di tab **Dunia** untuk melihat apa yang terjadi pada tanggal ini dalam sejarah, dari Wikipedia. Setiap kali ia menampilkan tiga peristiwa lain.
+
+Pilih **Bahasa Wikipedia**. Hanya Wikipedia yang menerbitkan daftar seperti itu yang ditawarkan. **Otomatis** memakai bahasa aplikasi jika bisa, jika tidak bahasa Inggris. Kode QR membuka artikel tentang peristiwa pertama.";
+"help.profiles.title" = "Profil dan Pintasan";
+"help.profiles.body" = "Profil adalah kumpulan pengaturan yang tersimpan, misalnya **Kerja**, **Rumah** atau **Malam pemilu**. Gunakan menu profil di sebelah menu bahasa:
+
+• **Simpan sebagai profil baru…** menyimpan pengaturanmu saat ini.
+• Pilih profil di menu untuk beralih ke sana. Perubahan yang kamu buat disimpan ke profil yang sedang dipakai.
+• **Ekspor…** menyimpan file .nyheter yang bisa kamu bagikan. Buka di Mac lain untuk menambahkannya di sana.
+
+**Pintasan**: pilih **Salin tautan Pintasan** dan tempel ke tindakan **Buka URL** di app Pintasan. Lalu sebuah pintasan atau otomatisasi, misalnya saat Fokus menyala, bisa mengganti profil. Tautan lain: **nyheter://refresh** mengambil berita, **nyheter://filter?word=…** menambah filter, **nyheter://watchword?word=…** menambah kata pantau dan **nyheter://history** membuka riwayat.";
